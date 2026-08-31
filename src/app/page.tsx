@@ -272,7 +272,15 @@ export default function Home() {
         <nav className="grid h-[72px] shrink-0 grid-cols-4 border-t border-black/6 bg-white px-3">
           {tabs.map(({ label, Icon, active }) => (
             <Link
-              href={label === "마이로컬" ? "/plan" : "/"}
+              href={
+                label === "마이로컬"
+                  ? "/plan"
+                  : label === "미션"
+                    ? "/mission"
+                    : label === "MY"
+                      ? "/my"
+                      : "/"
+              }
               key={label}
               className="flex flex-col items-center justify-center gap-1.5"
             >
