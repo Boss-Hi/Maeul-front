@@ -12,6 +12,7 @@ import {
   Star,
   UsersRound
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const filters = ["전체", "축제", "공연", "행사"];
@@ -125,7 +126,10 @@ export default function Home() {
         </div>
 
         <section className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-24">
-          <button className="w-full rounded-[18px] bg-[linear-gradient(135deg,#1E7F3C,#2f9a52)] p-4 text-left shadow-[0_12px_28px_rgba(30,127,60,0.16)]">
+          <Link
+            href="/plan"
+            className="block w-full rounded-[18px] bg-[linear-gradient(135deg,#1E7F3C,#2f9a52)] p-4 text-left shadow-[0_12px_28px_rgba(30,127,60,0.16)]"
+          >
             <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.06em] text-[#c8f0d5]">
               <CalendarDays size={15} />
               나의 스케줄
@@ -141,7 +145,7 @@ export default function Home() {
                 내 플랜 보기
               </span>
             </div>
-          </button>
+          </Link>
 
           <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
             {filters.map((filter) => (
@@ -168,7 +172,8 @@ export default function Home() {
 
           <div className="mt-3 grid gap-3">
             {visibleEvents.map((event) => (
-              <article
+              <Link
+                href="/event"
                 key={event.title}
                 className="overflow-hidden rounded-2xl border border-black/6 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
               >
@@ -205,12 +210,12 @@ export default function Home() {
                     <span className="min-w-0 truncate text-sm font-medium text-[#8a938c]">
                       {event.date}
                     </span>
-                    <button className="shrink-0 rounded-[10px] bg-[#1E7F3C] px-4 py-2.5 text-sm font-bold text-white">
+                    <span className="shrink-0 rounded-[10px] bg-[#1E7F3C] px-4 py-2.5 text-sm font-bold text-white">
                       일정 플랜 선택
-                    </button>
+                    </span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
 
@@ -266,7 +271,8 @@ export default function Home() {
 
         <nav className="grid h-[72px] shrink-0 grid-cols-4 border-t border-black/6 bg-white px-3">
           {tabs.map(({ label, Icon, active }) => (
-            <button
+            <Link
+              href={label === "마이로컬" ? "/plan" : "/"}
               key={label}
               className="flex flex-col items-center justify-center gap-1.5"
             >
@@ -283,7 +289,7 @@ export default function Home() {
               >
                 {label}
               </span>
-            </button>
+            </Link>
           ))}
         </nav>
       </div>
