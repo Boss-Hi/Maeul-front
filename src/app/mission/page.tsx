@@ -79,7 +79,7 @@ const badges = [
 ];
 
 const tabs = [
-  { label: "탐색", Icon: Search, href: "/", active: false },
+  { label: "탐색", Icon: Search, href: "/home", active: false },
   { label: "마이로컬", Icon: CalendarDays, href: "/plan", active: false },
   { label: "미션", Icon: Star, href: "/mission", active: true },
   { label: "MY", Icon: CircleUserRound, href: "/my", active: false }

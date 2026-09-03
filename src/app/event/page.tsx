@@ -39,7 +39,7 @@ export default function EventPage() {
             }}
           >
             <Link
-              href="/"
+              href="/home"
               aria-label="메인 탐색으로 돌아가기"
               className="absolute top-4 left-4 flex size-9 items-center justify-center rounded-xl bg-white/92 text-[#16211a] shadow-[0_4px_14px_rgba(0,0,0,0.12)]"
             >

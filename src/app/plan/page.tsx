@@ -163,7 +163,7 @@ const dayPlans: Record<
 };
 
 const tabs = [
-  { label: "탐색", Icon: Search, href: "/", active: false },
+  { label: "탐색", Icon: Search, href: "/home", active: false },
   { label: "마이로컬", Icon: CalendarDays, href: "/plan", active: true },
   { label: "미션", Icon: Star, href: "/mission", active: false },
   { label: "MY", Icon: CircleUserRound, href: "/my", active: false }
@@ -182,7 +182,7 @@ export default function PlanPage() {
         <header className="shrink-0 bg-[#12592C] px-5 py-4 text-white">
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/home"
               aria-label="메인 탐색으로 돌아가기"
               className="flex size-9 items-center justify-center rounded-xl bg-white/14"
             >

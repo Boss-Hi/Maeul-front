@@ -48,7 +48,7 @@ const activities = [
 ];
 
 const tabs = [
-  { label: "탐색", Icon: Search, href: "/", active: false },
+  { label: "탐색", Icon: Search, href: "/home", active: false },
   { label: "마이로컬", Icon: CalendarDays, href: "/plan", active: false },
   { label: "미션", Icon: Star, href: "/mission", active: false },
   { label: "MY", Icon: CircleUserRound, href: "/my", active: true }
@@ -62,7 +62,7 @@ export default function MyPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <Link
-                href="/"
+                href="/home"
                 aria-label="메인 탐색으로 돌아가기"
                 className="flex size-9 items-center justify-center rounded-xl bg-white/14"
               >
