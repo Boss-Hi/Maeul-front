@@ -10,6 +10,7 @@ import {
   Search,
   Sparkles,
   Star,
+  Trees,
   UsersRound
 } from "lucide-react";
 import Link from "next/link";
@@ -81,13 +82,13 @@ export default function Home() {
   const visibleTops = topsOpen ? topEvents : topEvents.slice(0, 4);
 
   return (
-    <main className="h-lvh overflow-hidden bg-[#e7eae7] text-[#16211a]">
-      <div className="mx-auto flex h-lvh w-full max-w-[600px] flex-col overflow-hidden bg-[#F5F8F6] shadow-[0_0_38px_rgba(20,34,25,0.08)]">
-        <header className="shrink-0 bg-[#12592C] px-5 pt-4 pb-4 text-white">
+    <main className="h-dvh overflow-hidden bg-[#e2ebe5] text-[#16211a]">
+      <div className="mx-auto flex h-dvh w-full max-w-[600px] flex-col overflow-hidden bg-[#F6FAF7] shadow-[0_0_38px_rgba(20,34,25,0.08)]">
+        <header className="shrink-0 bg-[#12592C] px-5 pt-5 pb-4 text-white">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="size-[22px] rounded-[7px] bg-[#3ba55f]" />
-              <span className="text-[15px] font-black tracking-[0.06em]">
+              <Trees size={23} className="text-[#a6e5b9]" />
+              <span className="text-[16px] font-black tracking-[0.1em]">
                 MAEUL
               </span>
             </div>
@@ -105,7 +106,7 @@ export default function Home() {
             </div>
           </div>
 
-          <button className="mt-3 flex h-10 w-full items-center gap-2 rounded-xl bg-white/14 px-3 text-left">
+          <button className="mt-4 flex h-11 w-full items-center gap-2 rounded-[15px] border border-white/10 bg-white/12 px-3 text-left">
             <Search size={18} className="shrink-0 text-[#a9e6bd]" />
             <span className="shrink-0 text-[12px] font-bold text-[#a9e6bd]">
               강원 강릉시 42150
@@ -116,45 +117,29 @@ export default function Home() {
           </button>
         </header>
 
-        <div className="flex shrink-0 items-center gap-2 bg-[#0f4d26] px-5 py-2.5">
-          <span className="rounded-full bg-[#8fdca8] px-2.5 py-1 text-[11px] font-bold text-[#12592C]">
+        <div className="flex shrink-0 items-center gap-2 border-b border-[#dce9df] bg-[#eaf3e8] px-5 py-2.5">
+          <span className="shrink-0 rounded-full bg-[#12592C] px-2.5 py-1 text-[11px] font-bold text-white">
             예정된 여행 D-2
           </span>
-          <span className="min-w-0 truncate text-[12px] font-medium text-white">
+          <span className="min-w-0 truncate text-[12px] font-medium text-[#52705a]">
             강릉 · 솔향 야간 버스킹 & 커피 페스타
           </span>
         </div>
 
-        <section className="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-24">
-          <Link
-            href="/onboarding"
-            className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-[#cfe0d5] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-          >
-            <div className="min-w-0">
-              <div className="text-[11px] font-black tracking-[0.08em] text-[#1E7F3C]">
-                TASTE ONBOARDING
-              </div>
-              <div className="mt-1 text-[16px] font-black text-[#16211a]">
-                나에게 맞는 마을 취향 설정
-              </div>
-              <div className="mt-1 truncate text-[12px] font-medium text-[#7b847d]">
-                나이, 직업, 테마를 한 단계씩 고르고 추천을 정교하게 받아요
-              </div>
-            </div>
-            <span className="shrink-0 rounded-full bg-[#EAF6EE] px-3 py-2 text-[12px] font-bold text-[#1E7F3C]">
-              시작
-            </span>
-          </Link>
-
+        <section className="min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-7">
           <Link
             href="/plan"
-            className="block w-full rounded-[18px] bg-[linear-gradient(135deg,#1E7F3C,#2f9a52)] p-4 text-left shadow-[0_12px_28px_rgba(30,127,60,0.16)]"
+            className="relative isolate block w-full overflow-hidden rounded-[24px] bg-[linear-gradient(125deg,#12592C,#287446)] p-5 text-left shadow-[0_10px_26px_rgba(18,89,44,0.12)]"
           >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-8 -bottom-16 -z-10 size-48 rounded-full border-[24px] border-[#a6d4ad]/10"
+            />
             <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.06em] text-[#c8f0d5]">
               <CalendarDays size={15} />
               나의 스케줄
             </div>
-            <div className="mt-2 text-[21px] leading-snug font-black text-white">
+            <div className="mt-3 text-[20px] leading-snug font-bold break-keep text-white">
               2026 강릉 솔향 야간 버스킹 & 커피 페스타
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
@@ -167,15 +152,16 @@ export default function Home() {
             </div>
           </Link>
 
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
             {filters.map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
+                aria-pressed={activeFilter === filter}
                 className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-bold transition ${
                   activeFilter === filter
-                    ? "border-[#1E7F3C] bg-[#1E7F3C] text-white"
-                    : "border-black/10 bg-white text-[#4a544c]"
+                    ? "border-[#12592C] bg-[#12592C] text-white"
+                    : "border-[#dce7df] bg-white text-[#617668] hover:border-[#95bba1]"
                 }`}
               >
                 {filter}
@@ -184,25 +170,25 @@ export default function Home() {
           </div>
 
           <div className="mt-5 flex items-baseline justify-between gap-4">
-            <h1 className="text-xl font-black text-[#16211a]">
-              AI 맞춤 추천 로컬 행사
+            <h1 className="text-[19px] font-bold tracking-tight text-[#24432d]">
+              취향에 맞는 마을 소식
             </h1>
             <span className="text-xs text-[#8a938c]">18건</span>
           </div>
 
-          <div className="mt-3 grid gap-3">
+          <div className="mt-4 grid gap-4">
             {visibleEvents.map((event) => (
               <Link
                 href="/event"
                 key={event.title}
-                className="overflow-hidden rounded-2xl border border-black/6 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                className="overflow-hidden rounded-[22px] border border-[#e0e9e2] bg-white shadow-[0_5px_18px_rgba(25,65,35,0.04)] transition-shadow hover:shadow-[0_8px_24px_rgba(25,65,35,0.09)]"
               >
                 <div
-                  className="relative h-[132px] bg-cover bg-center"
+                  className="relative h-[148px] bg-cover bg-center"
                   style={{ backgroundImage: `url(${event.image})` }}
                 >
                   <div className="absolute inset-0 bg-black/10" />
-                  <span className="absolute top-3 left-3 rounded-full bg-[#1E7F3C] px-3 py-1 text-[11px] font-bold text-white">
+                  <span className="absolute top-3 left-3 rounded-full bg-[#12592C]/95 px-3 py-1.5 text-[11px] font-bold text-white">
                     매칭률 {event.rate}
                   </span>
                   <span className="absolute top-3 right-3 rounded-full bg-white/92 px-3 py-1 text-[11px] font-bold text-[#16211a]">
@@ -220,17 +206,17 @@ export default function Home() {
                       {event.category}
                     </span>
                   </div>
-                  <h2 className="mt-2.5 text-[19px] leading-snug font-black text-[#16211a]">
+                  <h2 className="mt-3 text-[18px] leading-snug font-bold break-keep text-[#24432d]">
                     {event.title}
                   </h2>
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#7b847d]">
+                  <p className="mt-2 text-[13px] leading-6 text-[#738378]">
                     {event.desc}
                   </p>
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className="min-w-0 truncate text-sm font-medium text-[#8a938c]">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#edf2ee] pt-3">
+                    <span className="text-xs font-medium text-[#809086]">
                       {event.date}
                     </span>
-                    <span className="shrink-0 rounded-[10px] bg-[#1E7F3C] px-4 py-2.5 text-sm font-bold text-white">
+                    <span className="shrink-0 rounded-xl bg-[#EAF6EE] px-3.5 py-2.5 text-xs font-bold text-[#12592C]">
                       일정 플랜 선택
                     </span>
                   </div>
@@ -239,20 +225,20 @@ export default function Home() {
             ))}
           </div>
 
-          <h2 className="mt-7 text-xl font-black text-[#16211a]">
+          <h2 className="mt-8 text-[19px] font-bold tracking-tight text-[#24432d]">
             실시간 인기 축제 TOP
           </h2>
 
-          <div className="mt-3 overflow-hidden rounded-2xl border border-black/6 bg-white">
+          <div className="mt-4 overflow-hidden rounded-[22px] border border-[#e0e9e2] bg-white">
             {visibleTops.map(([no, title, meta], index) => (
               <div
                 key={title}
-                className="flex items-center gap-3 border-b border-black/5 px-3.5 py-3 last:border-b-0"
+                className="flex items-center gap-3 border-b border-[#edf2ee] px-4 py-4 last:border-b-0"
               >
                 <div
                   className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold ${
                     index === 0
-                      ? "bg-[#1E7F3C] text-white"
+                      ? "bg-[#12592C] text-white"
                       : "bg-[#EDF1EE] text-[#8a938c]"
                   }`}
                 >
@@ -274,6 +260,7 @@ export default function Home() {
             ))}
             <button
               onClick={() => setTopsOpen((open) => !open)}
+              aria-expanded={topsOpen}
               className="flex w-full items-center justify-center gap-1 bg-[#FAFCFB] px-3 py-3 text-sm font-bold text-[#1E7F3C]"
             >
               {topsOpen ? (
@@ -289,7 +276,10 @@ export default function Home() {
           </div>
         </section>
 
-        <nav className="grid h-[72px] shrink-0 grid-cols-4 border-t border-black/6 bg-white px-3">
+        <nav
+          aria-label="메인 메뉴"
+          className="grid min-h-[72px] shrink-0 grid-cols-4 border-t border-[#e0e9e2] bg-white px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        >
           {tabs.map(({ label, Icon, active }) => (
             <Link
               href={
@@ -302,12 +292,17 @@ export default function Home() {
                       : "/home"
               }
               key={label}
-              className="flex flex-col items-center justify-center gap-1.5"
+              aria-current={active ? "page" : undefined}
+              className="flex flex-col items-center justify-center gap-1"
             >
-              <Icon
-                size={20}
-                className={active ? "text-[#1E7F3C]" : "text-[#98a19a]"}
-              />
+              <span
+                className={`flex h-8 w-12 items-center justify-center rounded-full ${active ? "bg-[#EAF6EE]" : ""}`}
+              >
+                <Icon
+                  size={20}
+                  className={active ? "text-[#1E7F3C]" : "text-[#98a19a]"}
+                />
+              </span>
               <span
                 className={`text-[11px] ${
                   active

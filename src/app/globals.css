@@ -54,6 +54,60 @@ select {
   }
 }
 
+.scenery-intro[data-intro]::before,
+.scenery-intro[data-intro]::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  z-index: 10;
+  width: 50%;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      115deg,
+      #ffffff38 0%,
+      #ffffff0a 38%,
+      #ffffff45 40%,
+      #ffffff08 55%
+    ),
+    linear-gradient(180deg, #f0f6ed40, #d6e8d930);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  box-shadow:
+    inset 0 0 0 1px #ffffff80,
+    inset 0 0 32px #12592c08;
+}
+
+.scenery-intro[data-intro]::before {
+  left: 0;
+  border-right: 1px solid #b8d2bf;
+}
+
+.scenery-intro[data-intro]::after {
+  right: 0;
+  border-left: 1px solid #ffffffb3;
+}
+
+.scenery-intro[data-intro="opening"]::before {
+  animation: windowSlideLeft 1.8s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+.scenery-intro[data-intro="opening"]::after {
+  animation: windowSlideRight 1.8s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+}
+
+@keyframes windowSlideLeft {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes windowSlideRight {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes mountainDrift {
   from {
     transform: translateX(0);

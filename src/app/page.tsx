@@ -1,11 +1,12 @@
 import { ArrowRight, Sparkles, Trees } from "lucide-react";
 import Link from "next/link";
+import { SceneryIntro } from "./scenery-intro";
 
 export default function StartPage() {
   return (
-    <main className="h-lvh overflow-hidden bg-[#e2ebe5] text-[#16211a]">
-      <div className="mx-auto flex h-lvh w-full max-w-[600px] flex-col overflow-hidden bg-[#F6FAF7] shadow-[0_0_38px_rgba(20,34,25,0.08)]">
-        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-5 pt-6 pb-5">
+    <main className="h-dvh overflow-y-auto bg-[#e2ebe5] text-[#16211a]">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[600px] flex-col bg-[#F6FAF7] shadow-[0_0_38px_rgba(20,34,25,0.08)]">
+        <section className="relative flex flex-1 flex-col overflow-hidden px-5 pt-6 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <div className="absolute inset-0 bg-[linear-gradient(180deg,#F7FCF8_0%,#EAF5EE_56%,#D4EADB_100%)]" />
           <div className="absolute inset-x-0 bottom-0 h-[34%] bg-[#c8e2cf]" />
           <div className="absolute right-[-90px] bottom-[18%] h-[220px] w-[220px] rounded-full border-[42px] border-white/36" />
@@ -29,28 +30,33 @@ export default function StartPage() {
               <Sparkles size={13} />
               취향으로 시작하는 체류
             </div>
-            <h1 className="mt-5 animate-[riseIn_.72s_ease-out_.1s_forwards] text-[42px] leading-[1.08] font-black text-[#102819] opacity-0">
+            <h1 className="mt-5 text-[42px] leading-[1.08] font-black text-[#102819] motion-safe:animate-[riseIn_.72s_ease-out_.1s_both]">
               머무는 여행,
               <br />
               미션으로 시작
             </h1>
-            <p className="mt-5 max-w-[320px] animate-[riseIn_.72s_ease-out_.35s_forwards] text-[15px] leading-[1.75] font-semibold text-[#52685a] opacity-0">
+            <p
+              id="intro-description"
+              className="mt-5 max-w-[320px] text-[15px] leading-[1.75] font-semibold text-[#52685a] motion-safe:animate-[riseIn_.72s_ease-out_.35s_both]"
+            >
               취향을 고르면 마을의 행사, 장소, 미션이 하나의 체류 루트로
               이어져요.
             </p>
           </div>
 
-          <div className="relative z-10 mt-auto">
-            <SceneryWindow />
-
-            <Link
-              href="/onboarding"
-              className="relative z-10 mt-4 flex h-[56px] w-full items-center justify-center gap-2 rounded-[17px] bg-[#12592C] text-[16px] font-black text-white shadow-[0_12px_28px_rgba(18,89,44,0.28)]"
-            >
-              시작하기
-              <ArrowRight size={19} />
-            </Link>
+          <div className="relative z-10 mt-auto shrink-0 pt-6 md:my-auto">
+            <SceneryIntro>
+              <SceneryWindow />
+            </SceneryIntro>
           </div>
+
+          <Link
+            href="/onboarding"
+            className="relative z-10 mt-4 flex h-[56px] w-full shrink-0 items-center justify-center gap-2 rounded-[17px] bg-[#12592C] text-[16px] font-black text-white shadow-[0_12px_28px_rgba(18,89,44,0.28)]"
+          >
+            시작하기
+            <ArrowRight size={19} />
+          </Link>
         </section>
       </div>
     </main>
@@ -59,29 +65,32 @@ export default function StartPage() {
 
 function SceneryWindow() {
   return (
-    <div className="relative h-[500px] overflow-hidden rounded-[32px] border border-white/70 bg-[#eef8f1] shadow-[0_18px_42px_rgba(20,34,25,0.1)]">
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.82)_0%,rgba(235,248,239,0.44)_48%,rgba(168,211,181,0.56)_100%)]" />
-      <div className="absolute inset-x-0 top-0 h-32 bg-white/30" />
+    <div className="relative h-[clamp(160px,calc(100dvh-440px),500px)] overflow-hidden rounded-[32px] border border-white/70 bg-[#eef8f1] md:max-h-[450px]">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#fafcf9_0%,#eef6ee_30%,#e2efe3_60%,#c7e2cf_100%)]" />
+      <div
+        aria-hidden="true"
+        className="absolute top-[12%] right-[14%] size-12 rounded-full bg-[#f3dca0]/75 shadow-[0_0_0_12px_rgba(243,220,160,0.12),0_0_42px_rgba(243,220,160,0.2)]"
+      />
 
-      <div className="absolute top-14 left-0 flex w-[200%] animate-[cloudDrift_32s_linear_infinite] gap-16 opacity-70">
+      <div className="absolute top-[10%] left-0 flex w-[200%] animate-[cloudDrift_32s_linear_infinite] gap-16 opacity-70">
         <Cloud />
         <Cloud className="mt-10 scale-75" />
         <Cloud className="scale-90" />
         <Cloud className="mt-7 scale-80" />
       </div>
 
-      <div className="absolute right-0 bottom-[118px] left-0 flex w-[200%] animate-[mountainDrift_30s_linear_infinite] opacity-62">
+      <div className="absolute bottom-0 left-0 flex h-[78%] w-[200%] animate-[mountainDrift_30s_linear_infinite] opacity-62">
         <MountainRange />
         <MountainRange />
       </div>
 
-      <div className="absolute right-0 bottom-[58px] left-0 flex w-[200%] animate-[villageDrift_19s_linear_infinite] opacity-80">
+      <div className="absolute bottom-0 left-0 flex w-[200%] min-w-[1200px] animate-[villageDrift_19s_linear_infinite] items-end opacity-80">
         <VillageStrip />
         <VillageStrip />
       </div>
 
-      <div className="absolute right-0 bottom-0 left-0 h-[78px] bg-[#8fc49b]/72" />
-      <div className="absolute right-0 bottom-[58px] left-0 h-px bg-white/65" />
+      <div className="absolute inset-x-0 bottom-0 h-2.5 bg-[#8fc49b]/72" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-white/65" />
       <div className="absolute inset-0 rounded-[32px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.44),inset_0_-46px_58px_rgba(18,89,44,0.1)]" />
     </div>
   );
@@ -89,12 +98,18 @@ function SceneryWindow() {
 
 function Cloud({ className = "" }: Readonly<{ className?: string }>) {
   return (
-    <div className={`relative h-11 w-28 shrink-0 ${className}`}>
-      <div className="absolute bottom-0 left-3 h-7 w-20 rounded-full bg-white" />
-      <div className="absolute bottom-2 left-0 size-9 rounded-full bg-white" />
-      <div className="absolute right-3 bottom-1 size-10 rounded-full bg-white" />
-      <div className="absolute bottom-3 left-9 size-10 rounded-full bg-white" />
-    </div>
+    <svg
+      viewBox="0 0 128 48"
+      aria-hidden="true"
+      className={`h-10 w-28 shrink-0 ${className}`}
+      fill="none"
+    >
+      <path
+        d="M24 42C13 44 5 38 6 29C6 21 13 16 22 18C23 8 33 3 43 8C50 -1 65 1 70 12C81 5 96 11 98 22C109 17 121 23 122 32C123 41 113 46 102 42C93 48 82 46 76 42C66 48 54 47 47 42C39 47 29 46 24 42Z"
+        fill="#ffffff"
+        fillOpacity="0.85"
+      />
+    </svg>
   );
 }
 
@@ -102,7 +117,7 @@ function MountainRange() {
   return (
     <svg
       viewBox="0 0 900 260"
-      className="h-[260px] w-1/2 shrink-0"
+      className="h-full w-1/2 shrink-0"
       aria-hidden="true"
       preserveAspectRatio="none"
     >
@@ -126,14 +141,19 @@ function VillageStrip() {
   return (
     <svg
       viewBox="0 0 900 210"
-      className="h-[210px] w-1/2 shrink-0"
+      className="h-auto w-1/2 shrink-0"
       aria-hidden="true"
-      preserveAspectRatio="none"
+      preserveAspectRatio="xMidYMax meet"
     >
       <path
         d="M0 180 C105 149 195 158 297 180 C409 204 491 151 604 166 C716 181 803 162 900 180 L900 210 L0 210 Z"
         fill="#79b987"
       />
+      <g opacity="0.85">
+        <Tree x={126} y={108} color="#80ab82" />
+        <Tree x={523} y={102} color="#8ab28c" />
+        <Tree x={794} y={108} color="#7fa67c" />
+      </g>
       <Hanok x={45} y={115} body="#fff6df" roof="#4f8f5d" />
       <LowHouse x={174} y={108} body="#ffffff" roof="#7db98a" />
       <Apartment x={292} y={54} body="#edf8f1" roof="#6aa878" />
@@ -141,9 +161,18 @@ function VillageStrip() {
       <Hanok x={568} y={104} body="#ffffff" roof="#79b987" />
       <Apartment x={710} y={66} body="#f7fbf8" roof="#5d9f6c" />
       <LowHouse x={818} y={120} body="#fff6df" roof="#7db98a" />
-      <Tree x={126} y={114} color="#65a873" />
-      <Tree x={523} y={108} color="#78b686" />
-      <Tree x={852} y={110} color="#5b9d69" />
+      {[224, 492, 776].map((x) => (
+        <g key={x} transform={`translate(${x} 177)`}>
+          <path
+            d="M0 17V3M0 12L-6 7M0 9L6 4"
+            stroke="#77985f"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <circle cx="0" cy="2" r="4" fill="#f3dca0" />
+          <circle cx="7" cy="3" r="3" fill="#fff9e9" />
+        </g>
+      ))}
     </svg>
   );
 }
@@ -262,6 +291,13 @@ function Tree({
       <circle cx="20" cy="20" r="20" fill={color} />
       <circle cx="8" cy="33" r="15" fill={color} opacity="0.9" />
       <circle cx="32" cy="34" r="16" fill={color} opacity="0.92" />
+      <path
+        d="M20 48V22M20 38L10 30M20 31L28 24"
+        stroke="#c7dcbb"
+        strokeWidth="2"
+        strokeLinecap="round"
+        opacity="0.45"
+      />
     </g>
   );
 }
