@@ -149,7 +149,7 @@ export default function EventPage() {
 
         <div className="shrink-0 border-t border-black/6 bg-white px-5 py-4">
           <Link
-            href="/plan"
+            href="/plan/new"
             className="flex h-[54px] w-full items-center justify-center rounded-[15px] bg-[#1E7F3C] text-[15px] font-bold text-white shadow-[0_6px_18px_rgba(30,127,60,0.28)]"
           >
             이 행사로 일정 만들기

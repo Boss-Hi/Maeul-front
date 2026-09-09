@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { TasteProfile } from "./taste-profile";
 import { getBirthProfile } from "./birth-profile";
+import { BirthDatePicker } from "./birth-date-picker";
 
 type StepId = "age" | "job" | "purpose" | "theme" | "stay" | "food" | "pace";
 
@@ -214,7 +215,6 @@ export function OnboardingFlow({
 }: Readonly<{ initialBirthDate?: string }>) {
   const [stepIndex, setStepIndex] = useState(0);
   const [birthDate, setBirthDate] = useState(initialBirthDate);
-  const [birthTouched, setBirthTouched] = useState(false);
   const [answers, setAnswers] = useState(() => {
     const profile = getBirthProfile(initialBirthDate);
     return { ...initialAnswers, age: profile ? [profile.ageGroup] : [] };
@@ -248,8 +248,6 @@ export function OnboardingFlow({
   const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
   const StepIcon = currentStep.Icon;
   const birthProfile = getBirthProfile(birthDate);
-  const today = new Date();
-  const maxBirthDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const selected = answers[currentStep.id];
 
   const canGoNext = isComplete || selected.length > 0;
@@ -375,25 +373,9 @@ export function OnboardingFlow({
                       </span>
                       <CalendarDays size={19} className="text-[#1E7F3C]" />
                     </div>
-                    <label
-                      htmlFor="birth-date"
-                      className="text-sm font-bold text-[#12592C]"
-                    >
-                      태어난 날
-                    </label>
-                    <input
-                      id="birth-date"
-                      type="date"
-                      autoComplete="bday"
-                      required
-                      min="1900-01-01"
-                      max={maxBirthDate}
-                      value={birthDate}
-                      onChange={(event) => updateBirthDate(event.target.value)}
-                      onBlur={() => setBirthTouched(true)}
-                      aria-invalid={birthTouched && !birthProfile}
-                      aria-describedby="birth-help"
-                      className="mt-3 block min-h-14 w-full min-w-0 rounded-2xl border border-[#c8dfcf] bg-[#F3F9F5] px-4 py-3 text-base font-bold text-[#12592C] outline-none focus:border-[#1E7F3C] focus:ring-2 focus:ring-[#d5ebdc]"
+                    <BirthDatePicker
+                      initialValue={birthDate}
+                      onChange={updateBirthDate}
                     />
                     <div
                       id="birth-help"
@@ -404,10 +386,6 @@ export function OnboardingFlow({
                         <span className="flex items-center gap-2 text-[#1E7F3C]">
                           <Check size={15} />만 {birthProfile.age}세 ·{" "}
                           {birthProfile.ageGroup} 취향으로 담아둘게요.
-                        </span>
-                      ) : birthTouched ? (
-                        <span className="text-[#a35c42]">
-                          오늘 이전의 올바른 생년월일을 입력해 주세요.
                         </span>
                       ) : (
                         <span className="text-[#73877a]">
