@@ -1,0 +1,338 @@
+.page {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #e8efed;
+  color: #315f50;
+}
+.shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1080px;
+  height: 100%;
+  margin: auto;
+  overflow: hidden;
+  background: #f7faf5;
+  box-shadow: 0 0 60px #315f5009;
+}
+.header {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 16px 20px 12px;
+  background: #f7faf5;
+}
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.headerIcon {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 50%;
+  border: 1px solid #d5e3d3;
+  background: #ffffffb3;
+  color: #467b65;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid #d5e3d3;
+  border-radius: 28px;
+  background: #fffefb;
+}
+.search:focus-within {
+  outline: 2px solid #8bbb9f;
+  outline-offset: 2px;
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  padding: 0 20px 28px;
+}
+.regionBanner {
+  position: relative;
+  min-height: 295px;
+  overflow: hidden;
+  border-radius: 22px;
+  background-color: #c7e9ef;
+  background-size: cover;
+  background-position: 62% center;
+}
+.regionLabel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #ffffffdf;
+  font-size: 12px;
+  font-weight: 700;
+}
+.bannerCopy {
+  position: relative;
+  width: 76%;
+  padding: 34px 22px 26px;
+}
+.bannerKicker {
+  font-size: 14px;
+  line-height: 1.7;
+  font-weight: 700;
+  color: #3b7766;
+}
+.bannerCopy h2 {
+  margin-top: 21px;
+  font-size: 30px;
+  line-height: 1.25;
+  font-weight: 900;
+  color: #245c51;
+}
+.bannerDescription {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #285c50;
+  word-break: keep-all;
+}
+.bannerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: 1px solid #ffffffc9;
+  border-radius: 24px;
+  background: #ffffffee;
+  color: #356e57;
+  font-size: 13px;
+  font-weight: 800;
+}
+.categoryBar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin-inline: -20px;
+  background: #f7faf5f5;
+  backdrop-filter: blur(10px);
+}
+.categoryList {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 76px;
+  padding: 12px 20px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.category {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 46px;
+  padding: 10px 17px;
+  border: 1px solid #d7e4d2;
+  border-radius: 28px;
+  background: #fffefb;
+  color: #46785f;
+  font-size: 13px;
+  font-weight: 700;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.category:hover {
+  border-color: #81ad92;
+}
+.categoryActive {
+  border-color: #478264;
+  background: #478264;
+  color: white;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #538773;
+}
+.heading {
+  margin-top: 7px;
+  font-size: 25px;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #315f50;
+}
+.festivalGrid {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+.festivalCard {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid #dce7d6;
+  border-radius: 20px;
+  background: #fffefb;
+  box-shadow: 0 5px 18px #446a4810;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.festivalCard:hover {
+  border-color: #8fb79b;
+  box-shadow: 0 8px 24px #446a481b;
+}
+.festivalCard:focus-visible,
+.category:focus-visible,
+.bannerButton:focus-visible {
+  outline: 2px solid #478264;
+  outline-offset: 3px;
+}
+.poster {
+  display: flex;
+  aspect-ratio: 1.95;
+  width: 100%;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #e7efea;
+}
+.cardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 11px 7px 5px;
+}
+.cardCategory {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #e4f0e5;
+  color: #47775d;
+  font-size: 10px;
+  font-weight: 700;
+}
+.cardTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 48px;
+  margin-top: 7px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  color: #345f50;
+}
+.bottomNav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  min-height: 72px;
+  flex-shrink: 0;
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid #dce5d7;
+  background: #fffefbf5;
+}
+@media (min-width: 640px) {
+  .festivalGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .regionBanner {
+    min-height: 300px;
+    background-position: center;
+  }
+  .bannerCopy {
+    width: 60%;
+    padding: 30px 34px;
+  }
+  .bannerCopy h2 {
+    font-size: 36px;
+  }
+}
+@media (min-width: 1024px) {
+  .header {
+    display: block;
+    position: relative;
+    padding: 20px 28px;
+    min-height: 86px;
+  }
+  .headerTop {
+    min-height: 46px;
+  }
+  .search {
+    position: absolute;
+    top: 20px;
+    left: 230px;
+    right: 205px;
+  }
+  .content {
+    padding-inline: 28px;
+  }
+  .categoryBar {
+    margin-inline: -28px;
+  }
+  .categoryList {
+    padding-inline: 28px;
+    gap: 12px;
+  }
+  .category {
+    min-height: 52px;
+    padding-inline: 23px;
+    font-size: 15px;
+  }
+  .heading {
+    font-size: 30px;
+  }
+  .regionBanner {
+    min-height: 315px;
+  }
+  .bannerCopy {
+    padding-left: 42px;
+  }
+  .bannerKicker {
+    font-size: 16px;
+  }
+  .bannerDescription {
+    font-size: 16px;
+  }
+  .festivalGrid {
+    gap: 18px;
+  }
+  .cardTitle {
+    font-size: 18px;
+    line-height: 26px;
+    min-height: 52px;
+  }
+}

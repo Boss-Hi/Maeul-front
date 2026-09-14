@@ -2,6 +2,9 @@
 
 import {
   CalendarDays,
+  PartyPopper,
+  Camera,
+  Landmark,
   Leaf,
   ArrowUpRight,
   ImageOff,
@@ -19,6 +22,8 @@ import {
   UsersRound
 } from "lucide-react";
 import Link from "next/link";
+import styles from "./home.module.css";
+import { RegionBanner } from "./region-banner";
 import { useRef, useState, useSyncExternalStore } from "react";
 import {
   useInfiniteQuery,
@@ -26,6 +31,8 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { getFestivals, getFestivalCategories } from "@/lib/api/festivals";
+
+const categoryIcons = { EV: PartyPopper, EX: Camera, HS: Landmark, VE: Trees };
 
 const topEvents = [
   ["1", "강릉 커피 페스타", "강원 강릉시 · 8월 15일-22일"],
@@ -117,10 +124,10 @@ export default function Home() {
   }
 
   return (
-    <main className="fixed inset-0 h-dvh overflow-hidden overscroll-none bg-[#e2ebe5] text-[#16211a]">
-      <div className="mx-auto flex h-full w-full max-w-[600px] flex-col overflow-hidden bg-[#F5F8F6] shadow-[0_0_38px_rgba(20,34,25,0.08)] lg:max-w-[1040px]">
-        <header className="shrink-0 border-b border-[#dce7df] bg-[#F5F8F6] px-5 pt-4 pb-4 text-[#12592C]">
-          <div className="flex items-center justify-between gap-4">
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <div className={styles.headerTop}>
             <div className="flex items-center gap-2">
               <span className="flex size-9 items-center justify-center rounded-[14px] bg-[#12592C] text-[#a6e5b9]">
                 <Trees size={21} />
@@ -141,7 +148,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-4 flex h-11 w-full items-center gap-2 rounded-[15px] border border-[#d3e5d8] bg-white px-3 text-left">
+          <div className={styles.search}>
             <Search size={18} className="shrink-0 text-[#528363]" />
             <input
               aria-label="불러온 마을 소식 검색"
@@ -153,63 +160,12 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="flex shrink-0 items-center gap-2 border-b border-[#dce9df] bg-[#eaf3e8] px-5 py-2.5">
-          <span className="shrink-0 rounded-full bg-[#12592C] px-2.5 py-1 text-[11px] font-bold text-white">
-            예정된 여행 D-2
-          </span>
-          <span className="min-w-0 truncate text-[12px] font-medium text-[#52705a]">
-            강릉 · 솔향 야간 버스킹 & 커피 페스타
-          </span>
-        </div>
-
-        <section
-          ref={scrollRef}
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-5 pb-7"
-        >
-          <div className="flex items-center justify-between gap-4 pt-6 pb-1">
-            <div>
-              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold text-[#528363]">
-                <Leaf size={13} /> 나다운 여행의 다음 걸음
-              </p>
-              <h2 className="text-[25px] leading-snug font-black text-[#12592C]">
-                오늘은 어떤 마을에
-                <br className="sm:hidden" /> 마음이 가나요?
-              </h2>
-              <p className="mt-2 text-[13px] leading-6 text-[#627c6a]">
-                작은 축제부터 느긋한 산책까지, 머물고 싶은 곳을 찾아봐요.
-              </p>
-            </div>
-            <div
-              aria-hidden="true"
-              className="hidden size-16 shrink-0 items-center justify-center rounded-[24px] bg-[#EAF6EE] text-[#1E7F3C] sm:flex"
-            >
-              <Trees size={32} strokeWidth={1.4} />
-            </div>
-          </div>
-          <Link
-            href="/plan"
-            className="mt-5 block w-full border-y border-[#d3e5d8] bg-[#EAF6EE] px-4 py-4 text-left"
-          >
-            <div className="flex items-center gap-2 text-[11px] font-bold text-[#528363]">
-              <CalendarDays size={15} />
-              나의 스케줄
-            </div>
-            <div className="mt-2 text-[16px] leading-snug font-bold break-keep text-[#12592C]">
-              2026 강릉 솔향 야간 버스킹 & 커피 페스타
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="min-w-0 truncate text-[12px] text-[#627c6a]">
-                안목 커피거리 · 3일 살기
-              </span>
-              <span className="shrink-0 rounded-full bg-white px-3.5 py-2 text-xs font-bold text-[#12592C]">
-                내 플랜 보기
-              </span>
-            </div>
-          </Link>
+        <section ref={scrollRef} className={styles.content}>
+          <RegionBanner />
 
           <div ref={categoryAnchorRef} className="mt-6" />
-          <div className="sticky top-0 z-20 -mx-5 border-b border-[#dce9df] bg-[#F5F8F6] shadow-[0_4px_10px_rgba(25,65,35,0.03)]">
-            <div className="flex min-h-[68px] items-center gap-2 overflow-x-auto overscroll-x-contain px-5 py-3">
+          <div className={styles.categoryBar}>
+            <div className={styles.categoryList}>
               {filters.map((filter) => (
                 <button
                   key={filter.code}
@@ -236,12 +192,15 @@ export default function Home() {
                     });
                   }}
                   aria-pressed={activeFilter === filter.code}
-                  className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-bold transition ${
-                    activeFilter === filter.code
-                      ? "border-[#12592C] bg-[#12592C] text-white"
-                      : "border-[#dce7df] bg-white text-[#617668] hover:border-[#95bba1]"
-                  }`}
+                  className={`${styles.category} ${activeFilter === filter.code ? styles.categoryActive : ""}`}
                 >
+                  {(() => {
+                    const Icon =
+                      categoryIcons[
+                        filter.code as keyof typeof categoryIcons
+                      ] ?? Trees;
+                    return <Icon size={21} strokeWidth={1.7} />;
+                  })()}
                   {filter.name}
                 </button>
               ))}
@@ -249,9 +208,16 @@ export default function Home() {
           </div>
 
           <div className="mt-5 flex items-baseline justify-between gap-4">
-            <h1 className="text-[19px] font-bold tracking-tight text-[#24432d]">
-              마음이 머무는 곳
-            </h1>
+            <div>
+              <p className={styles.eyebrow}>
+                <Leaf size={16} /> 마을에서 만나는 특별한 하루
+              </p>
+              <h1 className={styles.heading}>
+                {activeFilter === "EV"
+                  ? "이런 축제는 어때요?"
+                  : "이런 마을 여행은 어때요?"}
+              </h1>
+            </div>
             <span className="text-xs text-[#8a938c]">
               {festivals.isSuccess
                 ? search
@@ -310,12 +276,12 @@ export default function Home() {
               조건에 맞는 마을 소식이 없어요.
             </p>
           )}
-          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className={styles.festivalGrid}>
             {visibleEvents.map((event) => (
               <Link
                 href={`/event?contentId=${encodeURIComponent(event.id ?? "")}`}
                 key={event.id}
-                className="group grid grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] items-start gap-3 overflow-hidden rounded-[20px] border border-[#dce7df] bg-white p-3 shadow-[0_4px_16px_rgba(25,65,35,0.04)] transition hover:border-[#86b796] hover:shadow-[0_8px_24px_rgba(25,65,35,0.09)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#12592C] sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-4 sm:p-4"
+                className={styles.festivalCard}
               >
                 <FestivalPoster
                   key={event.image}
@@ -323,16 +289,14 @@ export default function Home() {
                   title={event.title}
                 />
 
-                <div className="flex min-w-0 flex-col py-1">
+                <div className={styles.cardBody}>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1E7F3C]">
+                    <span className={styles.cardCategory}>
                       <Sparkles size={12} />
                       {event.categoryName || "로컬 소식"}
                     </span>
                   </div>
-                  <h2 className="mt-2 line-clamp-3 text-[15px] leading-6 font-bold break-words text-[#24432d] sm:text-[17px]">
-                    {event.title}
-                  </h2>
+                  <h2 className={styles.cardTitle}>{event.title}</h2>
                   <p className="mt-2 flex items-start gap-1.5 text-xs leading-5 text-[#738378]">
                     <MapPin size={14} className="mt-0.5 shrink-0" />
                     <span className="line-clamp-2 break-words">
@@ -472,10 +436,7 @@ export default function Home() {
           </div>
         </section>
 
-        <nav
-          aria-label="메인 메뉴"
-          className="grid min-h-[72px] shrink-0 grid-cols-4 border-t border-[#e0e9e2] bg-white px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
-        >
+        <nav aria-label="메인 메뉴" className={styles.bottomNav}>
           {tabs.map(({ label, Icon, active }) => (
             <Link
               href={
@@ -515,7 +476,7 @@ export default function Home() {
 function FestivalPoster({ src, title }: { src: string; title: string }) {
   const [failed, setFailed] = useState(false);
   return (
-    <div className="flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-lg bg-[#f0f2f4]">
+    <div className={styles.poster}>
       {src && !failed ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -546,14 +507,16 @@ function HeaderIcon({
   badge?: boolean;
 }>) {
   return (
-    <button
+    <Link
+      href={label === "메이트" || label === "내 정보" ? "/my" : "/mission"}
       aria-label={label}
-      className="relative flex size-9 items-center justify-center rounded-full border border-[#dce7df] bg-white text-[#12592C]"
+      title={label}
+      className={styles.headerIcon}
     >
       {children}
       {badge ? (
         <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-[#ff6b4a]" />
       ) : null}
-    </button>
+    </Link>
   );
 }
