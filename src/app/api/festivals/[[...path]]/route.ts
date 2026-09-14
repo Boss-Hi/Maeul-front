@@ -14,7 +14,8 @@ export async function GET(
       { status: 404 }
     );
   try {
-    const base = process.env.MAEUL_API_BASE_URL || "https://api.maeul.kro.kr";
+    const base =
+      process.env.MAEUL_API_BASE_URL || "https://api.maeul.duckdns.org";
     const url = new URL(
       `/api/festivals${path.length ? `/${path[0]}` : ""}`,
       base
