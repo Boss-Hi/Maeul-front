@@ -21,15 +21,23 @@ export async function GET(
       base
     );
     if (!path.length) {
-      for (const key of ["page", "size", "tourCategoryCode"]) {
+      for (const key of [
+        "page",
+        "size",
+        "tourCategoryCode",
+        "location.region1depth",
+        "location.region2depth"
+      ]) {
         const value = request.nextUrl.searchParams.get(key);
         if (value !== null) {
           const valid =
             key === "tourCategoryCode"
               ? /^[A-Z0-9]{2,8}$/.test(value)
-              : /^\d+$/.test(value) &&
-                Number(value) <= (key === "size" ? 100 : 100000) &&
-                (key !== "size" || Number(value) > 0);
+              : key.startsWith("location.")
+                ? /^\d{2,5}$/.test(value)
+                : /^\d+$/.test(value) &&
+                  Number(value) <= (key === "size" ? 100 : 100000) &&
+                  (key !== "size" || Number(value) > 0);
           if (!valid)
             return NextResponse.json(
               { message: "조회 조건을 확인해 주세요." },

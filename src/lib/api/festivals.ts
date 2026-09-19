@@ -83,7 +83,13 @@ function extractList(value: unknown): unknown[] {
   throw new Error("행사 응답 형식을 확인하지 못했어요.");
 }
 export async function getFestivals(
-  options: { page: number; category: string; size?: number },
+  options: {
+    page: number;
+    category: string;
+    size?: number;
+    region1depth?: string;
+    region2depth?: string;
+  },
   signal?: AbortSignal
 ) {
   const params = new URLSearchParams({
@@ -91,6 +97,10 @@ export async function getFestivals(
     size: String(options.size ?? 5)
   });
   params.set("tourCategoryCode", options.category || "EV");
+  if (options.region1depth)
+    params.set("location.region1depth", options.region1depth);
+  if (options.region2depth)
+    params.set("location.region2depth", options.region2depth);
   const response = z
     .object({
       success: z.literal(true),

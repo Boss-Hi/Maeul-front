@@ -24,13 +24,14 @@ import {
 import Link from "next/link";
 import styles from "./home.module.css";
 import { RegionBanner } from "./region-banner";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   useInfiniteQuery,
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
 import { getFestivals, getFestivalCategories } from "@/lib/api/festivals";
+import { getRegions } from "@/lib/api/regions";
 
 const categoryIcons = { EV: PartyPopper, EX: Camera, HS: Landmark, VE: Trees };
 
@@ -70,19 +71,31 @@ export default function Home() {
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLElement>(null);
   const categoryAnchorRef = useRef<HTMLDivElement>(null);
+  const regionControlRef = useRef<HTMLDivElement>(null);
   const [topsOpen, setTopsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [regionsOpen, setRegionsOpen] = useState(false);
+  const [region1depth, setRegion1depth] = useState("");
+  const [region2depth, setRegion2depth] = useState("");
   const festivals = useInfiniteQuery({
     queryKey: [
       "festivals-infinite",
       activeFilter,
+      region1depth,
+      region2depth,
       isDesktop,
       isDesktop ? desktopPage : 0
     ],
     initialPageParam: isDesktop ? desktopPage : 0,
     queryFn: ({ signal, pageParam }) =>
       getFestivals(
-        { page: pageParam, category: activeFilter, size: isDesktop ? 6 : 5 },
+        {
+          page: pageParam,
+          category: activeFilter,
+          size: isDesktop ? 6 : 5,
+          region1depth,
+          region2depth
+        },
         signal
       ),
     getNextPageParam: (lastPage) =>
@@ -91,6 +104,10 @@ export default function Home() {
   const categories = useQuery({
     queryKey: ["festival-categories"],
     queryFn: ({ signal }) => getFestivalCategories(signal)
+  });
+  const regions = useQuery({
+    queryKey: ["regions"],
+    queryFn: ({ signal }) => getRegions(signal)
   });
   const filters = [
     ...(categories.data ?? []).filter((category) => Boolean(category.code))
@@ -105,6 +122,52 @@ export default function Home() {
 
   const visibleTops = topsOpen ? topEvents : topEvents.slice(0, 4);
   const desktopData = festivals.data?.pages[0];
+  const selectedRegion = regions.data?.find(
+    (region) => region.code === region1depth
+  );
+  const selectedSigungu = selectedRegion?.sigungus.find(
+    (sigungu) => sigungu.code === region2depth
+  );
+  const regionLabel = selectedSigungu
+    ? `${selectedRegion?.name} ${selectedSigungu.name}`
+    : selectedRegion?.name || "전국";
+
+  useEffect(() => {
+    if (!regionsOpen) return;
+
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !regionControlRef.current?.contains(event.target)
+      )
+        setRegionsOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [regionsOpen]);
+
+  function scrollToResults() {
+    requestAnimationFrame(() => {
+      const container = scrollRef.current;
+      const anchor = categoryAnchorRef.current;
+      if (container && anchor)
+        container.scrollTo({
+          top:
+            container.scrollTop +
+            anchor.getBoundingClientRect().top -
+            container.getBoundingClientRect().top,
+          behavior: "instant"
+        });
+    });
+  }
+
+  function resetForRegionChange() {
+    setDesktopPage(0);
+    setSearch("");
+    scrollToResults();
+  }
 
   function changeDesktopPage(page: number) {
     setDesktopPage(page);
@@ -148,15 +211,120 @@ export default function Home() {
             </div>
           </div>
 
-          <div className={styles.search}>
-            <Search size={18} className="shrink-0 text-[#528363]" />
-            <input
-              aria-label="불러온 마을 소식 검색"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="어떤 마을이 궁금하세요?"
-              className="min-w-0 flex-1 bg-transparent text-base text-[#24432d] outline-none placeholder:text-[#8a9c90]"
-            />
+          <div ref={regionControlRef} className={styles.regionControl}>
+            <div className={styles.search}>
+              <Search size={18} className="shrink-0 text-[#528363]" />
+              <input
+                aria-label="불러온 마을 소식 검색"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="어떤 마을이 궁금하세요?"
+                className="min-w-0 flex-1 bg-transparent text-base text-[#24432d] outline-none placeholder:text-[#8a9c90]"
+              />
+              <button
+                type="button"
+                aria-expanded={regionsOpen}
+                aria-controls="region-picker"
+                onClick={() => setRegionsOpen((open) => !open)}
+                className={styles.regionToggle}
+              >
+                <MapPin size={15} />
+                <span>{regionLabel}</span>
+                <ChevronDown size={14} />
+              </button>
+            </div>
+            {regionsOpen && (
+              <div id="region-picker" className={styles.regionPicker}>
+                <div className={styles.regionPickerHeader}>
+                  <div>
+                    <p className="text-sm font-black text-[#24432d]">
+                      어디에서 열리는 소식이 궁금하세요?
+                    </p>
+                    <p className="mt-1 text-xs text-[#718078]">
+                      지역을 고르면 해당 지역의 소식만 보여드려요.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegion1depth("");
+                      setRegion2depth("");
+                      resetForRegionChange();
+                      setRegionsOpen(false);
+                    }}
+                    className={styles.allRegionButton}
+                  >
+                    전국 보기
+                  </button>
+                </div>
+                {regions.isPending && (
+                  <p className="py-5 text-center text-xs text-[#738378]">
+                    지역을 불러오는 중이에요.
+                  </p>
+                )}
+                {regions.isError && (
+                  <p
+                    role="alert"
+                    className="py-5 text-center text-xs text-[#738378]"
+                  >
+                    지역 목록을 불러오지 못했어요.
+                  </p>
+                )}
+                {regions.data && (
+                  <>
+                    <div className={styles.regionList}>
+                      {regions.data.map((region) => (
+                        <button
+                          type="button"
+                          key={region.code}
+                          aria-pressed={region1depth === region.code}
+                          onClick={() => {
+                            setRegion1depth(region.code);
+                            setRegion2depth("");
+                            resetForRegionChange();
+                          }}
+                          className={`${styles.regionOption} ${
+                            region1depth === region.code
+                              ? styles.regionOptionActive
+                              : ""
+                          }`}
+                        >
+                          {region.name}
+                        </button>
+                      ))}
+                    </div>
+                    {selectedRegion && (
+                      <div className={styles.sigunguSection}>
+                        <p className="text-xs font-bold text-[#46785f]">
+                          {selectedRegion.name} 시·군·구
+                        </p>
+                        <div className={styles.sigunguList}>
+                          {selectedRegion.sigungus.map((sigungu) => (
+                            <button
+                              type="button"
+                              key={sigungu.code}
+                              aria-pressed={region2depth === sigungu.code}
+                              onClick={() => {
+                                setRegion2depth(sigungu.code);
+                                resetForRegionChange();
+                                setRegionsOpen(false);
+                              }}
+                              className={`${styles.sigunguOption} ${
+                                region2depth === sigungu.code
+                                  ? styles.sigunguOptionActive
+                                  : ""
+                              }`}
+                            >
+                              {sigungu.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
@@ -242,7 +410,9 @@ export default function Home() {
           {festivals.isPending && (
             <div role="status" className="mt-4 space-y-4">
               <p className="text-sm text-[#738378]">
-                마을 소식을 가져오고 있어요.
+                {region1depth
+                  ? `${regionLabel}의 소식을 가져오고 있어요.`
+                  : "마을 소식을 가져오고 있어요."}
               </p>
               {[0, 1].map((item) => (
                 <div
