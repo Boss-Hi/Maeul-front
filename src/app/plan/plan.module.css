@@ -24,8 +24,8 @@
 }
 .hero {
   position: relative;
-  min-height: 245px;
-  padding: 24px 20px 88px;
+  min-height: 250px;
+  padding: 28px 20px 100px;
   background: #c7e9ef url("/images/regions/gangneung.webp") center/cover;
 }
 .hero:after {
@@ -43,27 +43,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border: 1px solid #ffffffdb;
   border-radius: 50%;
   background: #fffefbeb;
   color: #397757;
 }
 .heroCopy {
-  margin-top: 22px;
+  margin-top: 14px;
   max-width: 560px;
 }
 .heroCopy p {
   color: #3e8360;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.8;
 }
 .heroCopy h1 {
-  margin-top: 8px;
+  margin-top: 10px;
   color: #205b52;
-  font-size: 29px;
-  line-height: 1.28;
+  font-size: 32px;
+  line-height: 1.2;
   font-weight: 900;
   word-break: keep-all;
 }

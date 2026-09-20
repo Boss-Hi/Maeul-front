@@ -187,7 +187,7 @@ export default function PlanPage() {
               aria-label="탐색으로 돌아가기"
               className={styles.back}
             >
-              <ArrowLeft size={22} />
+              <ArrowLeft size={20} />
             </Link>
             <div className={styles.heroCopy}>
               <p>마이 로컬 플랜</p>
