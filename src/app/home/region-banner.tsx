@@ -5,12 +5,14 @@ import styles from "./home.module.css";
 // Regional artwork can be replaced independently of the live festival posters.
 const featuredRegion = {
   name: "강릉",
-  title: "강릉 3일 살기",
+  title: "강릉에서 즐기는 오늘",
   description: "바다와 커피, 그리고 느긋한 일상",
   image: "/images/regions/gangneung.webp"
 };
 
-export function RegionBanner() {
+export function RegionBanner({
+  exploreHref
+}: Readonly<{ exploreHref: string }>) {
   return (
     <section
       className={styles.regionBanner}
@@ -29,8 +31,8 @@ export function RegionBanner() {
         </p>
         <h2>{featuredRegion.title}</h2>
         <p className={styles.bannerDescription}>{featuredRegion.description}</p>
-        <Link href="/plan/new" className={styles.bannerButton}>
-          여행 일정 준비하기 <ArrowRight size={18} />
+        <Link href={exploreHref} scroll={false} className={styles.bannerButton}>
+          강릉 마을 콘텐츠 보기 <ArrowRight size={18} />
         </Link>
       </div>
     </section>

@@ -22,6 +22,7 @@ import {
   UsersRound
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./home.module.css";
 import { RegionBanner } from "./region-banner";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -34,6 +35,28 @@ import { getFestivals, getFestivalCategories } from "@/lib/api/festivals";
 import { getRegions } from "@/lib/api/regions";
 
 const categoryIcons = { EV: PartyPopper, EX: Camera, HS: Landmark, VE: Trees };
+
+const categoryHeadingCopy: Record<
+  string,
+  { regional: string; national: string }
+> = {
+  EV: {
+    regional: "마을이 들썩이는 날",
+    national: "이번 주말, 마을 축제 어때요?"
+  },
+  EX: {
+    regional: "오늘은, 직접 해볼까요?",
+    national: "오늘은, 새로운 체험 어때요?"
+  },
+  HS: {
+    regional: "이야기를 따라 걸어요",
+    national: "이야기를 따라 걷는 하루 어때요?"
+  },
+  VE: {
+    regional: "마을의 감각을 만나요",
+    national: "마을의 감각을 만나는 시간 어때요?"
+  }
+};
 
 const topEvents = [
   ["1", "강릉 커피 페스타", "강원 강릉시 · 8월 15일-22일"],
@@ -61,6 +84,11 @@ const getDesktopSnapshot = () => window.matchMedia(desktopQuery).matches;
 const getServerSnapshot = () => false;
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.toString();
+  const regionQuery = searchParams.get("region") ?? "";
+  const cityQuery = searchParams.get("city") ?? "";
   const isDesktop = useSyncExternalStore(
     subscribeViewport,
     getDesktopSnapshot,
@@ -72,11 +100,16 @@ export default function Home() {
   const scrollRef = useRef<HTMLElement>(null);
   const categoryAnchorRef = useRef<HTMLDivElement>(null);
   const regionControlRef = useRef<HTMLDivElement>(null);
+  const pendingRegionQueryRef = useRef<string | null>(null);
   const [topsOpen, setTopsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [regionsOpen, setRegionsOpen] = useState(false);
   const [region1depth, setRegion1depth] = useState("");
   const [region2depth, setRegion2depth] = useState("");
+  const isRegionExplore = Boolean(
+    regionQuery || cityQuery || region1depth || region2depth
+  );
+  const isResolvingRegionFilter = Boolean(regionQuery) && !region1depth;
   const festivals = useInfiniteQuery({
     queryKey: [
       "festivals-infinite",
@@ -87,6 +120,7 @@ export default function Home() {
       isDesktop ? desktopPage : 0
     ],
     initialPageParam: isDesktop ? desktopPage : 0,
+    enabled: !isResolvingRegionFilter,
     queryFn: ({ signal, pageParam }) =>
       getFestivals(
         {
@@ -112,6 +146,10 @@ export default function Home() {
   const filters = [
     ...(categories.data ?? []).filter((category) => Boolean(category.code))
   ];
+  const activeCategoryName =
+    filters.find((category) => category.code === activeFilter)?.name ??
+    "즐길 거리";
+  const activeHeadingCopy = categoryHeadingCopy[activeFilter];
   const visibleEvents = (
     festivals.data?.pages.flatMap((page) => page.content) ?? []
   ).filter((event) =>
@@ -131,6 +169,63 @@ export default function Home() {
   const regionLabel = selectedSigungu
     ? `${selectedRegion?.name} ${selectedSigungu.name}`
     : selectedRegion?.name || "전국";
+  const regionalPlaceName =
+    selectedSigungu?.name ??
+    selectedRegion?.name ??
+    (regionQuery === "gangwon" ? "강릉" : "선택한 지역");
+
+  useEffect(() => {
+    if (pendingRegionQueryRef.current !== null) {
+      if (pendingRegionQueryRef.current !== searchQuery) return;
+      pendingRegionQueryRef.current = null;
+    }
+    if (!regions.data || !regionQuery) return;
+
+    const targetRegion =
+      regions.data.find((region) => region.code === regionQuery) ??
+      (regionQuery === "gangwon"
+        ? regions.data.find((region) => region.name.includes("강원"))
+        : undefined);
+    if (!targetRegion) return;
+
+    const targetSigungu = cityQuery
+      ? (targetRegion.sigungus.find((sigungu) => sigungu.code === cityQuery) ??
+        (cityQuery === "gangneung"
+          ? targetRegion.sigungus.find((sigungu) =>
+              sigungu.name.includes("강릉")
+            )
+          : undefined))
+      : undefined;
+    const nextRegionCode = targetRegion.code;
+    const nextSigunguCode = targetSigungu?.code ?? "";
+    if (region1depth === nextRegionCode && region2depth === nextSigunguCode)
+      return;
+
+    const frame = requestAnimationFrame(() => {
+      setRegion1depth(nextRegionCode);
+      setRegion2depth(nextSigunguCode);
+      setDesktopPage(0);
+      setSearch("");
+      const container = scrollRef.current;
+      const anchor = categoryAnchorRef.current;
+      if (!container || !anchor) return;
+      container.scrollTo({
+        top:
+          container.scrollTop +
+          anchor.getBoundingClientRect().top -
+          container.getBoundingClientRect().top,
+        behavior: "instant"
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    cityQuery,
+    region1depth,
+    region2depth,
+    regionQuery,
+    regions.data,
+    searchQuery
+  ]);
 
   useEffect(() => {
     if (!regionsOpen) return;
@@ -167,6 +262,17 @@ export default function Home() {
     setDesktopPage(0);
     setSearch("");
     scrollToResults();
+  }
+
+  function setRegionQuery(regionCode = "", sigunguCode = "") {
+    const params = new URLSearchParams(searchParams.toString());
+    if (regionCode) params.set("region", regionCode);
+    else params.delete("region");
+    if (sigunguCode) params.set("city", sigunguCode);
+    else params.delete("city");
+    const query = params.toString();
+    pendingRegionQueryRef.current = query;
+    router.replace(query ? `/home?${query}` : "/home", { scroll: false });
   }
 
   function changeDesktopPage(page: number) {
@@ -250,6 +356,7 @@ export default function Home() {
                       setRegion1depth("");
                       setRegion2depth("");
                       resetForRegionChange();
+                      setRegionQuery();
                       setRegionsOpen(false);
                     }}
                     className={styles.allRegionButton}
@@ -282,6 +389,7 @@ export default function Home() {
                             setRegion1depth(region.code);
                             setRegion2depth("");
                             resetForRegionChange();
+                            setRegionQuery(region.code);
                           }}
                           className={`${styles.regionOption} ${
                             region1depth === region.code
@@ -307,6 +415,10 @@ export default function Home() {
                               onClick={() => {
                                 setRegion2depth(sigungu.code);
                                 resetForRegionChange();
+                                setRegionQuery(
+                                  selectedRegion.code,
+                                  sigungu.code
+                                );
                                 setRegionsOpen(false);
                               }}
                               className={`${styles.sigunguOption} ${
@@ -329,7 +441,9 @@ export default function Home() {
         </header>
 
         <section ref={scrollRef} className={styles.content}>
-          <RegionBanner />
+          {!isRegionExplore && (
+            <RegionBanner exploreHref="/home?region=gangwon&city=gangneung" />
+          )}
 
           <div ref={categoryAnchorRef} className="mt-6" />
           <div className={styles.categoryBar}>
@@ -378,12 +492,19 @@ export default function Home() {
           <div className="mt-5 flex items-baseline justify-between gap-4">
             <div>
               <p className={styles.eyebrow}>
-                <Leaf size={16} /> 마을에서 만나는 특별한 하루
+                <Leaf size={16} />
+                {isRegionExplore
+                  ? `${regionalPlaceName}에서 만나는 특별한 하루`
+                  : "마을에서 만나는 특별한 하루"}
               </p>
               <h1 className={styles.heading}>
-                {activeFilter === "EV"
-                  ? "이런 축제는 어때요?"
-                  : "이런 마을 여행은 어때요?"}
+                {activeHeadingCopy
+                  ? isRegionExplore
+                    ? activeHeadingCopy.regional
+                    : activeHeadingCopy.national
+                  : isRegionExplore
+                    ? `${regionalPlaceName} ${activeCategoryName} 즐길 거리`
+                    : "마을에서 보낼 하루를 찾아보세요"}
               </h1>
             </div>
             <span className="text-xs text-[#8a938c]">
@@ -555,55 +676,59 @@ export default function Home() {
           <span role="status" className="sr-only">
             {visibleEvents.length}개의 마을 소식이 표시되어 있어요.
           </span>
-          <h2 className="mt-8 text-[19px] font-bold tracking-tight text-[#24432d]">
-            실시간 인기 축제 TOP
-          </h2>
+          {!isRegionExplore && (
+            <>
+              <h2 className="mt-8 text-[19px] font-bold tracking-tight text-[#24432d]">
+                실시간 인기 축제 TOP
+              </h2>
 
-          <div className="mt-4 overflow-hidden rounded-[22px] border border-[#e0e9e2] bg-white">
-            {visibleTops.map(([no, title, meta], index) => (
-              <div
-                key={title}
-                className="flex items-center gap-3 border-b border-[#edf2ee] px-4 py-4 last:border-b-0"
-              >
-                <div
-                  className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold ${
-                    index === 0
-                      ? "bg-[#12592C] text-white"
-                      : "bg-[#EDF1EE] text-[#8a938c]"
-                  }`}
+              <div className="mt-4 overflow-hidden rounded-[22px] border border-[#e0e9e2] bg-white">
+                {visibleTops.map(([no, title, meta], index) => (
+                  <div
+                    key={title}
+                    className="flex items-center gap-3 border-b border-[#edf2ee] px-4 py-4 last:border-b-0"
+                  >
+                    <div
+                      className={`flex size-7 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold ${
+                        index === 0
+                          ? "bg-[#12592C] text-white"
+                          : "bg-[#EDF1EE] text-[#8a938c]"
+                      }`}
+                    >
+                      {no}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-bold text-[#16211a]">
+                        {title}
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-1 text-[11px] text-[#8a938c]">
+                        <MapPin size={12} />
+                        <span className="truncate">{meta}</span>
+                      </div>
+                    </div>
+                    <button className="shrink-0 rounded-[9px] border border-[#cfe0d5] bg-[#EAF6EE] px-2.5 py-2 text-[11px] font-bold text-[#1E7F3C]">
+                      플랜 선택
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setTopsOpen((open) => !open)}
+                  aria-expanded={topsOpen}
+                  className="flex w-full items-center justify-center gap-1 bg-[#FAFCFB] px-3 py-3 text-sm font-bold text-[#1E7F3C]"
                 >
-                  {no}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold text-[#16211a]">
-                    {title}
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-1 text-[11px] text-[#8a938c]">
-                    <MapPin size={12} />
-                    <span className="truncate">{meta}</span>
-                  </div>
-                </div>
-                <button className="shrink-0 rounded-[9px] border border-[#cfe0d5] bg-[#EAF6EE] px-2.5 py-2 text-[11px] font-bold text-[#1E7F3C]">
-                  플랜 선택
+                  {topsOpen ? (
+                    <>
+                      접기 <ChevronUp size={16} />
+                    </>
+                  ) : (
+                    <>
+                      TOP 100 더보기 <ChevronDown size={16} />
+                    </>
+                  )}
                 </button>
               </div>
-            ))}
-            <button
-              onClick={() => setTopsOpen((open) => !open)}
-              aria-expanded={topsOpen}
-              className="flex w-full items-center justify-center gap-1 bg-[#FAFCFB] px-3 py-3 text-sm font-bold text-[#1E7F3C]"
-            >
-              {topsOpen ? (
-                <>
-                  접기 <ChevronUp size={16} />
-                </>
-              ) : (
-                <>
-                  TOP 100 더보기 <ChevronDown size={16} />
-                </>
-              )}
-            </button>
-          </div>
+            </>
+          )}
         </section>
 
         <nav aria-label="메인 메뉴" className={styles.bottomNav}>
