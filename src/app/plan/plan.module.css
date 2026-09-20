@@ -1,0 +1,558 @@
+.page {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  background: #e8efed;
+  color: #285c50;
+}
+.shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1080px;
+  height: 100%;
+  margin: auto;
+  overflow: hidden;
+  background: #f8fbf6;
+  box-shadow: 0 0 60px #315f5010;
+}
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.hero {
+  position: relative;
+  min-height: 245px;
+  padding: 24px 20px 88px;
+  background: #c7e9ef url("/images/regions/gangneung.webp") center/cover;
+}
+.hero:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #f7fbf633;
+}
+.back,
+.heroCopy {
+  position: relative;
+  z-index: 1;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #ffffffdb;
+  border-radius: 50%;
+  background: #fffefbeb;
+  color: #397757;
+}
+.heroCopy {
+  margin-top: 22px;
+  max-width: 560px;
+}
+.heroCopy p {
+  color: #3e8360;
+  font-size: 13px;
+  font-weight: 800;
+}
+.heroCopy h1 {
+  margin-top: 8px;
+  color: #205b52;
+  font-size: 29px;
+  line-height: 1.28;
+  font-weight: 900;
+  word-break: keep-all;
+}
+.body {
+  position: relative;
+  margin-top: -30px;
+  padding: 0 16px 24px;
+  border-radius: 30px 30px 0 0;
+  border-top: 5px solid #fffefb;
+  background: #f8fbf6;
+}
+.days {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  padding: 7px;
+  border: 1px solid #dce7d8;
+  border-radius: 28px;
+  background: #fffefbe8;
+}
+.days button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 45px;
+  border: 1px solid #dce7d8;
+  border-radius: 22px;
+  color: #527561;
+  font-size: 14px;
+  font-weight: 800;
+}
+.days button[aria-pressed="true"] {
+  border-color: #4b906c;
+  background: #4b906c;
+  color: white;
+  box-shadow: 0 4px 10px #4b906c29;
+}
+.mapCard {
+  position: relative;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #dce7d8;
+  border-radius: 22px;
+  background: #fffefb;
+  box-shadow: 0 6px 18px #315f5008;
+}
+.mapCard > div:first-child {
+  padding: 17px 16px 13px;
+}
+.mapCard h2,
+.sectionTitle h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 17px;
+  font-weight: 900;
+}
+.mapCard h2 svg,
+.sectionTitle h2 svg {
+  color: #64a071;
+}
+.mapCard p {
+  margin-top: 5px;
+  color: #7c8e82;
+  font-size: 12px;
+}
+.mapCard > span {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 7px 12px;
+  border-radius: 18px;
+  background: #edf5eb;
+  color: #3c7b56;
+  font-size: 12px;
+  font-weight: 800;
+}
+.map {
+  height: 235px;
+  width: 100%;
+  background: #dcefe8;
+}
+.mission {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 15px;
+  border: 1px solid #cfe5d5;
+  border-radius: 21px;
+  background: #edf7ed;
+}
+.mission > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 17px;
+  background: #fffefb;
+  color: #479060;
+}
+.mission div {
+  min-width: 0;
+}
+.mission p,
+.stay p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #4b9564;
+  font-size: 12px;
+  font-weight: 800;
+}
+.mission h2,
+.stay h2 {
+  margin-top: 5px;
+  overflow: hidden;
+  color: #255b4c;
+  font-size: 17px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mission small,
+.stay small {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #72877a;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mission > strong {
+  padding: 8px 11px;
+  border: 1px solid #d5e8d7;
+  border-radius: 18px;
+  background: #fffefb;
+  color: #3e855b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 23px;
+}
+.sectionTitle > span {
+  color: #8a938c;
+  font-size: 12px;
+  font-weight: 700;
+}
+.list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.list > button {
+  display: grid;
+  grid-template-columns: 54px 31px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 70px;
+  padding: 9px;
+  border: 1px solid #dfe8df;
+  border-radius: 18px;
+  background: #fffefb;
+  text-align: left;
+}
+.list > button.selected {
+  border-color: #9cc9a9;
+  box-shadow: 0 5px 14px #315f5010;
+}
+.list b {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 45px;
+  border-radius: 13px;
+  color: white;
+  font-size: 13px;
+}
+.list i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+}
+.list div {
+  min-width: 0;
+}
+.list div strong,
+.list div small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list div strong {
+  color: #243c31;
+  font-size: 14px;
+  font-weight: 900;
+}
+.list div small {
+  margin-top: 4px;
+  color: #7b8980;
+  font-size: 11px;
+}
+.list em {
+  padding: 7px 9px;
+  border-radius: 13px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+.stay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #dce7d8;
+  border-radius: 20px;
+  background: #fffefb;
+}
+.stay div {
+  min-width: 0;
+}
+.stay button {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 1px solid #8eb99a;
+  border-radius: 14px;
+  background: #f7fbf6;
+  color: #397b55;
+  font-size: 12px;
+  font-weight: 800;
+}
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 13px;
+  padding: 12px;
+  border: 1px solid #dcebdc;
+  border-radius: 14px;
+  background: #f3f9f0;
+  color: #648269;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #65a071;
+}
+.bottom {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  flex-shrink: 0;
+  min-height: 72px;
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid #dce5d7;
+  background: #fffefb;
+}
+.bottom a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #98a19a;
+  font-size: 11px;
+  font-weight: 600;
+}
+.bottom a[aria-current="page"] {
+  color: #1e7f3c;
+  font-weight: 800;
+}
+@media (min-width: 640px) {
+  .hero {
+    min-height: 275px;
+    padding: 28px 28px 98px;
+  }
+  .heroCopy h1 {
+    font-size: 34px;
+  }
+  .body {
+    padding-inline: 28px;
+  }
+  .map {
+    height: 300px;
+  }
+}
+@media (min-width: 1024px) {
+  .hero {
+    min-height: 300px;
+    padding-inline: 42px;
+  }
+  .heroCopy h1 {
+    font-size: 38px;
+  }
+  .body {
+    padding-inline: 44px;
+  }
+  .map {
+    height: 355px;
+  }
+  .mapCard > div:first-child,
+  .mission,
+  .stay {
+    padding: 20px;
+  }
+  .list > button {
+    min-height: 78px;
+    padding: 11px;
+  }
+  .list b {
+    min-height: 50px;
+  }
+}
+
+.list > div {
+  position: relative;
+  border: 1px solid #dfe8df;
+  border-radius: 18px;
+  background: #fffefb;
+}
+.list > div.selected {
+  border-color: #9cc9a9;
+  box-shadow: 0 5px 14px #315f5010;
+}
+.scheduleButton {
+  display: grid;
+  grid-template-columns: 54px 31px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 70px;
+  padding: 9px 48px 9px 9px;
+  text-align: left;
+}
+.directions {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #edf7ed;
+  color: #397b55;
+}
+.modalBackdrop {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  isolation: isolate;
+  background: #16211a66;
+  animation: modalFadeIn 0.2s ease-out;
+}
+.modal {
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+  border-radius: 24px 24px 0 0;
+  background: #fffefb;
+  animation: modalSlideUp 0.26s cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+@keyframes modalFadeIn {
+  from {
+    background: #16211a00;
+  }
+  to {
+    background: #16211a66;
+  }
+}
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modalBackdrop,
+  .modal {
+    animation: none;
+  }
+}
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+}
+.modalHeader p {
+  color: #4b9564;
+  font-size: 12px;
+  font-weight: 800;
+}
+.modalHeader h2 {
+  margin-top: 4px;
+  color: #285c50;
+  font-size: 18px;
+  font-weight: 900;
+}
+.modalHeader button {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #edf5eb;
+  color: #397b55;
+}
+.modes {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 14px;
+}
+.modes button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #dce7d8;
+  border-radius: 18px;
+  color: #5c7364;
+  font-size: 12px;
+  font-weight: 800;
+}
+.modes button[aria-pressed="true"] {
+  border-color: #4b906c;
+  background: #4b906c;
+  color: white;
+}
+.googleMap {
+  display: block;
+  width: 100%;
+  height: min(58dvh, 480px);
+  border: 0;
+  background: #e8efed;
+}
+.error {
+  padding: 40px 20px;
+  text-align: center;
+  color: #738378;
+  font-size: 13px;
+}
+.routeLoading {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 28px;
+  color: #4b9564;
+  text-align: center;
+}
+.routeLoading strong {
+  color: #285c50;
+  font-size: 15px;
+}
+.routeLoading span {
+  color: #74847a;
+  font-size: 12px;
+  line-height: 1.6;
+}
