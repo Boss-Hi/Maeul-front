@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowLeft,
   BookOpenText,
@@ -6,19 +8,36 @@ import {
   CheckCircle2,
   CircleUserRound,
   Coffee,
+  LoaderCircle,
+  MapPin,
   Mountain,
   Navigation,
   Search,
   Star,
-  Waves
+  UsersRound,
+  Waves,
+  X
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import styles from "./mission.module.css";
 
 const missionSteps = [
-  { label: "파도책방 안목점", state: "완료", active: true },
-  { label: "고래책방 커피 코너", state: "진행 가능", active: true },
-  { label: "30분 독서 인증", state: "대기", active: false }
+  {
+    label: "파도책방 안목점",
+    detail: "바다뷰 독립서점에서 30분 독서",
+    place: "강릉시 창해로 14"
+  },
+  {
+    label: "고래책방 커피 코너",
+    detail: "커피 한 잔과 함께 독서 기록 남기기",
+    place: "강릉시 안목길 28"
+  },
+  {
+    label: "30분 독서 인증",
+    detail: "선택한 서점에서 30분간 머물며 독서하기",
+    place: "앞선 두 장소 인증 후 시작"
+  }
 ];
 
 /* TODO: 매칭·커뮤니티 시스템 도입 시 예시 체류자를 실제 매칭 API 데이터로 교체한다.
@@ -89,6 +108,43 @@ const tabs = [
 ];
 
 export default function MissionPage() {
+  const [completedCount, setCompletedCount] = useState(1);
+  const [previewStep, setPreviewStep] = useState<number | null>(null);
+  const [verificationState, setVerificationState] = useState<
+    "idle" | "verifying" | "success"
+  >("idle");
+  const [missionFinished, setMissionFinished] = useState(false);
+  const verificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progress = Math.round((completedCount / missionSteps.length) * 100);
+  const canCompleteMission = completedCount === missionSteps.length;
+
+  useEffect(
+    () => () => {
+      if (verificationTimer.current) clearTimeout(verificationTimer.current);
+    },
+    []
+  );
+
+  function openVerification(index: number) {
+    if (index !== completedCount || missionFinished) return;
+    setPreviewStep(index);
+    setVerificationState("idle");
+  }
+
+  function simulateVerification() {
+    if (previewStep === null || verificationState !== "idle") return;
+    setVerificationState("verifying");
+    verificationTimer.current = setTimeout(() => {
+      setCompletedCount((count) => Math.min(count + 1, missionSteps.length));
+      setVerificationState("success");
+    }, 1200);
+  }
+
+  function closeVerification() {
+    if (verificationState === "verifying") return;
+    setPreviewStep(null);
+  }
+
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
@@ -121,8 +177,12 @@ export default function MissionPage() {
             <div className={styles.primaryColumn}>
               <div className={styles.progress}>
                 <div className="flex items-center justify-between gap-3">
-                  <span className={styles.status}>진행 중</span>
-                  <span className={styles.progressLabel}>체류 진행률 66%</span>
+                  <span className={styles.status}>
+                    {missionFinished ? "완료" : "진행 중"}
+                  </span>
+                  <span className={styles.progressLabel}>
+                    진행률 {progress}%
+                  </span>
                 </div>
                 <h2 className={styles.missionTitle}>강릉 독서 미션</h2>
                 <p className={styles.description}>
@@ -132,36 +192,37 @@ export default function MissionPage() {
                 <div
                   role="progressbar"
                   aria-label="미션 진행률"
-                  aria-valuenow={66}
+                  aria-valuenow={progress}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   className={styles.progressTrack}
                 >
-                  <div className={styles.progressFill} />
+                  <div
+                    className={styles.progressFill}
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-[#6e8b79]">2/3 완료</span>
+                  <span className="text-[11px] text-[#6e8b79]">
+                    {completedCount}/3 완료
+                  </span>
                   <span className="text-[11px] font-bold text-[#477a60]">
                     획득 예정 배지 · 강릉 독서광
                   </span>
                 </div>
               </div>
 
-              <div className={styles.stats}>
-                {[
-                  ["남은 시간", "1일 8시간"],
-                  ["주변 체류자", "12명"],
-                  ["예상 점수", "+38점"]
-                ].map(([label, value]) => (
-                  <div key={label} className={styles.stat}>
-                    <div className="text-[11px] font-medium text-[#8a938c]">
-                      {label}
-                    </div>
-                    <div className="mt-1 text-[14px] font-black text-[#16211a]">
-                      {value}
-                    </div>
-                  </div>
-                ))}
+              <div className={styles.nearbyStay}>
+                <span className={styles.nearbyIcon}>
+                  <UsersRound size={19} />
+                </span>
+                <div>
+                  <p>주변 체류자</p>
+                  <strong>12명</strong>
+                </div>
+                <span className={styles.nearbyDescription}>
+                  지금 강릉에 머무르고 있어요
+                </span>
               </div>
 
               <div className={styles.checklist}>
@@ -169,22 +230,33 @@ export default function MissionPage() {
                   <h2 className={styles.sectionTitle}>
                     <Leaf size={23} strokeWidth={1.5} /> 인증 체크리스트
                   </h2>
-                  <span className="rounded-full bg-[#EAF6EE] px-3 py-1.5 text-[11px] font-bold text-[#1E7F3C]">
-                    GPS 인증 가능
-                  </span>
                 </div>
                 <div className={styles.checkRows}>
                   {missionSteps.map((step, index) => (
-                    <div key={step.label} className={styles.checkRow}>
+                    <button
+                      key={step.label}
+                      type="button"
+                      onClick={() => openVerification(index)}
+                      disabled={index > completedCount || missionFinished}
+                      className={`${styles.checkRow} ${
+                        index === completedCount && !missionFinished
+                          ? styles.checkRowAvailable
+                          : ""
+                      }`}
+                    >
                       <div
                         className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
-                          step.active
+                          index < completedCount
                             ? "bg-[#4e9470] text-white"
-                            : "bg-[#e7eae8] text-[#a3afaa]"
+                            : index === completedCount && !missionFinished
+                              ? "bg-[#e4f1e5] text-[#4e9470]"
+                              : "bg-[#e7eae8] text-[#a3afaa]"
                         }`}
                       >
-                        {step.active ? (
+                        {index < completedCount ? (
                           <CheckCircle2 size={17} />
+                        ) : index === completedCount && !missionFinished ? (
+                          <MapPin size={18} />
                         ) : (
                           <span className="text-xs font-black">
                             {index + 1}
@@ -196,10 +268,17 @@ export default function MissionPage() {
                           {step.label}
                         </div>
                         <div className="mt-0.5 text-[11px] font-medium text-[#8a938c]">
-                          {step.state}
+                          {index < completedCount
+                            ? "완료"
+                            : index === completedCount && !missionFinished
+                              ? "인증하기"
+                              : "대기"}
                         </div>
                       </div>
-                    </div>
+                      {index === completedCount && !missionFinished && (
+                        <span className={styles.verifyLabel}>미리보기</span>
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -345,9 +424,24 @@ export default function MissionPage() {
               </div>
             </div>
 
-            <button className={styles.completeButton}>
-              <Leaf size={20} /> 미션 완료 인증하기
+            <button
+              type="button"
+              disabled={!canCompleteMission || missionFinished}
+              onClick={() => setMissionFinished(true)}
+              className={styles.completeButton}
+            >
+              <Leaf size={20} />
+              {missionFinished
+                ? "강릉 독서 미션 완료"
+                : canCompleteMission
+                  ? "미션 완료하기"
+                  : `${completedCount}/3 미션 진행 중`}
             </button>
+            {missionFinished && (
+              <div className={styles.completionNotice} role="status">
+                <CheckCircle2 size={18} /> 강릉 독서광 배지를 획득했어요.
+              </div>
+            )}
             <div aria-hidden="true" className={styles.coastFooter} />
           </div>
         </section>
@@ -376,7 +470,93 @@ export default function MissionPage() {
             </Link>
           ))}
         </nav>
+        {previewStep !== null && (
+          <VerificationModal
+            step={missionSteps[previewStep]}
+            state={verificationState}
+            onClose={closeVerification}
+            onVerify={simulateVerification}
+          />
+        )}
       </div>
     </main>
+  );
+}
+
+function VerificationModal({
+  step,
+  state,
+  onClose,
+  onVerify
+}: Readonly<{
+  step: (typeof missionSteps)[number];
+  state: "idle" | "verifying" | "success";
+  onClose: () => void;
+  onVerify: () => void;
+}>) {
+  const isSuccess = state === "success";
+  return (
+    <div className={styles.modalBackdrop} onMouseDown={onClose}>
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${step.label} 인증 절차 미리보기`}
+        className={styles.verificationModal}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className={styles.modalHandle} />
+        <div className={styles.modalHeader}>
+          <div>
+            <p>인증 절차 미리보기</p>
+            <h2>{step.label}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="닫기">
+            <X size={20} />
+          </button>
+        </div>
+        {isSuccess ? (
+          <div className={styles.verificationSuccess}>
+            <span>
+              <CheckCircle2 size={29} />
+            </span>
+            <strong>인증이 완료됐어요</strong>
+            <p>다음 미션이 열렸어요. 계속 이어가 볼까요?</p>
+            <button type="button" onClick={onClose}>
+              확인
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className={styles.verificationPlace}>
+              <MapPin size={20} />
+              <div>
+                <strong>{step.place}</strong>
+                <p>{step.detail}</p>
+              </div>
+            </div>
+            <p className={styles.demoNote}>
+              실제 서비스에서는 위치, 체류 시간 또는 사진 인증 결과를 확인해요.
+            </p>
+            <button
+              type="button"
+              disabled={state === "verifying"}
+              onClick={onVerify}
+              className={styles.verificationButton}
+            >
+              {state === "verifying" ? (
+                <>
+                  <LoaderCircle size={18} className="animate-spin" /> 인증을
+                  확인하고 있어요
+                </>
+              ) : (
+                <>
+                  <MapPin size={18} /> 인증 절차 미리보기
+                </>
+              )}
+            </button>
+          </>
+        )}
+      </section>
+    </div>
   );
 }

@@ -4,7 +4,6 @@ import {
   CalendarDays,
   ChevronRight,
   CircleUserRound,
-  Clock3,
   Coffee,
   Leaf,
   MapPin,
@@ -26,12 +25,6 @@ const badges = [
   { name: "로스터리 메이트", date: "2026.08.02", Icon: Coffee },
   { name: "오래된 생각줍기", date: "2026.07.28", Icon: Trophy },
   { name: "마을 새싹 주민", date: "2026.07.18", Icon: BadgeCheck }
-];
-
-const activities = [
-  ["오늘", "바다책방 독서 미션 2/3 달성"],
-  ["8/17", "이도현님과 팀 미션 제안 대기"],
-  ["8/02", "로스터리 메이트 배지 획득"]
 ];
 
 const tabs = [
@@ -85,21 +78,11 @@ export default function MyPage() {
                     <h1 className="truncate text-[24px] font-black tracking-normal text-[#24584d]">
                       데이비드
                     </h1>
-                    <span className="rounded-full bg-[#397757] px-2.5 py-1 text-[11px] font-extrabold text-white">
-                      Lv.3 주민
-                    </span>
                   </div>
                   <p className="mt-1.5 text-[13px] leading-relaxed text-[#72877a]">
-                    꾸준히, 묵묵히 · 지정한대로만 움직이는 중도 체류자
+                    커피와 독서를 좋아하는 강릉 체류자
                   </p>
                 </div>
-              </div>
-              <div className="relative mt-4 h-2.5 overflow-hidden rounded-full bg-[#e7eee8]">
-                <div className="h-full w-[68%] rounded-full bg-[#4b9a6e]" />
-              </div>
-              <div className="relative mt-2 flex items-center justify-between text-[12px]">
-                <span className="text-[#849287]">다음 레벨까지</span>
-                <strong className="text-[#397757]">68 / 100점</strong>
               </div>
             </section>
 
@@ -150,6 +133,38 @@ export default function MyPage() {
               </div>
             </Link>
 
+            <section className="mt-5 rounded-[20px] border border-[#dce7d8] bg-[#fffefbe8] p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="flex items-center gap-2 text-[17px] font-black text-[#24584d]">
+                    <Tag size={19} className="text-[#64a071]" /> 나를 보여주는
+                    취향
+                  </h2>
+                  <p className="mt-1.5 text-[12px] text-[#72877a]">
+                    커피와 독서, 느긋한 동네 산책을 좋아해요.
+                  </p>
+                </div>
+                <Link
+                  href="/onboarding"
+                  className="flex shrink-0 items-center gap-0.5 text-[12px] font-bold text-[#579167]"
+                >
+                  수정하기 <ChevronRight size={15} />
+                </Link>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["커피", "독서", "음악/공연", "로컬 맛집", "바다/자연"].map(
+                  (tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-[#eff5ed] px-3 py-2 text-[12px] font-bold text-[#5b7865]"
+                    >
+                      {tag}
+                    </span>
+                  )
+                )}
+              </div>
+            </section>
+
             <SectionHeading icon={Leaf} title="획득한 배지" link="/bedge" />
             <div className="mt-3 grid gap-2.5">
               {badges.map(({ name, date, Icon }) => (
@@ -173,43 +188,6 @@ export default function MyPage() {
                 </Link>
               ))}
             </div>
-
-            <SectionHeading icon={Clock3} title="최근 활동" />
-            <section className="mt-3 overflow-hidden rounded-[20px] border border-[#dce7d8] bg-[#fffefbe8] p-3.5">
-              {activities.map(([date, text], index) => (
-                <div
-                  key={`${date}-${text}`}
-                  className={`flex items-center gap-3 py-2 ${index ? "border-t border-[#e9efea]" : ""}`}
-                >
-                  <span className="w-10 shrink-0 text-center text-[11px] font-bold text-[#849287]">
-                    {date}
-                  </span>
-                  <span className="h-5 w-px bg-[#dce7d8]" />
-                  <p className="min-w-0 flex-1 text-[13px] font-semibold text-[#526b5d]">
-                    {text}
-                  </p>
-                  <ChevronRight size={16} className="shrink-0 text-[#90b99a]" />
-                </div>
-              ))}
-            </section>
-
-            <section className="mt-5 rounded-[20px] border border-[#dce7d8] bg-[#fffefbe8] p-4">
-              <h2 className="flex items-center gap-2 text-[17px] font-black text-[#24584d]">
-                <Tag size={19} className="text-[#64a071]" /> 관심 태그
-              </h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {["커피", "축제", "하루예술", "산책", "로컬 맛집"].map(
-                  (tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-[#eff5ed] px-3 py-2 text-[12px] font-bold text-[#5b7865]"
-                    >
-                      {tag}
-                    </span>
-                  )
-                )}
-              </div>
-            </section>
           </div>
         </section>
 

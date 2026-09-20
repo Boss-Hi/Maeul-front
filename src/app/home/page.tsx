@@ -14,12 +14,10 @@ import {
   ChevronUp,
   CircleUserRound,
   MapPin,
-  MessageCircle,
   Search,
   Sparkles,
   Star,
-  Trees,
-  UsersRound
+  Trees
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -305,12 +303,6 @@ export default function Home() {
             </div>
 
             <div className="flex items-center gap-3">
-              <HeaderIcon label="메시지" badge>
-                <MessageCircle size={17} />
-              </HeaderIcon>
-              <HeaderIcon label="메이트" badge>
-                <UsersRound size={17} />
-              </HeaderIcon>
               <HeaderIcon label="내 정보">
                 <CircleUserRound size={17} />
               </HeaderIcon>
