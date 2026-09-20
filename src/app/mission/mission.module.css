@@ -230,22 +230,82 @@
   font-weight: 800;
 }
 .teamNotice {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
   margin-top: 16px;
   padding: 16px;
   border: 1px solid #efd9a3;
   border-radius: 18px;
   background: #fff7df;
+  cursor: pointer;
+}
+.teamNoticeIcon {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f4d690;
+  color: #8a5a12;
+}
+.teamNotice strong,
+.teamNotice span span {
+  display: block;
+}
+.teamNotice strong {
+  color: #6f4a0e;
+  font-size: 14px;
+  font-weight: 900;
+}
+.teamNotice span span {
+  margin-top: 4px;
+  color: #8a6a2c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.teamArrow {
+  color: #ae7926;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1;
 }
 .mates {
-  margin-top: 18px;
-  padding: 16px 0;
-  border-top: 1px solid #d1e4d2;
-  border-bottom: 1px solid #d1e4d2;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #d1e4d2;
+  border-radius: 20px;
   background: #edf5eb;
 }
-.mates > h2,
-.mates > p {
-  padding-inline: 12px;
+.matesHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.matesHeader p {
+  margin-top: 5px;
+  color: #64816d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.matesHeader > button {
+  flex-shrink: 0;
+  border: 1px solid #cce1cf;
+  border-radius: 16px;
+  padding: 7px 9px;
+  background: #fffefbcc;
+  color: #397757;
+  font-size: 10px;
+  font-weight: 800;
+}
+.mateGrid {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
 }
 .mate {
   padding: 13px;
@@ -265,6 +325,11 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 6px 10px;
+}
+.mateHeading strong {
+  color: #24584d;
+  font-size: 14px;
+  font-weight: 900;
 }
 .mateTag {
   padding: 4px 10px;
@@ -295,25 +360,19 @@
   color: #52876b;
 }
 .outlineButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 100%;
   min-height: 42px;
   margin-top: 12px;
   border: 1px solid #bddac5;
   border-radius: 12px;
-  background: #f4f9ef;
+  background: #f8fbf5;
   color: #3d805d;
   font-size: 12px;
   font-weight: 700;
-}
-.message {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 16px;
-  border: 1px solid #dce5d7;
-  border-radius: 18px;
-  background: #fffefb;
 }
 .collectionTitle {
   margin-top: 24px;
@@ -385,6 +444,83 @@
   background: #fffefb;
   box-shadow: 0 -16px 40px #17322424;
   animation: verification-modal-in 220ms ease-out both;
+}
+.matchingModal {
+  position: relative;
+  width: min(100%, 600px);
+  padding: 10px 20px max(24px, env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0;
+  background: #fffefb;
+  box-shadow: 0 -16px 40px #17322424;
+  text-align: center;
+  animation: verification-modal-in 220ms ease-out both;
+}
+.matchingClose {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #edf5eb;
+  color: #397757;
+}
+.matchingModalIcon {
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  border-radius: 20px;
+  background: #fff1c9;
+  color: #9a6717;
+}
+.matchingModal > p {
+  margin-top: 13px;
+  color: #579167;
+  font-size: 12px;
+  font-weight: 800;
+}
+.matchingModal > h2 {
+  margin-top: 5px;
+  color: #24584d;
+  font-size: 21px;
+  font-weight: 900;
+}
+.matchingComingSoon {
+  display: grid;
+  gap: 7px;
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #d7e7d7;
+  border-radius: 17px;
+  background: #f3f9f1;
+  text-align: left;
+}
+.matchingComingSoon strong {
+  color: #397757;
+  font-size: 13px;
+  font-weight: 900;
+}
+.matchingComingSoon span {
+  color: #678172;
+  font-size: 12px;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+.matchingConfirm {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 16px;
+  border-radius: 16px;
+  background: #4b906c;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
 }
 .modalHandle {
   width: 38px;

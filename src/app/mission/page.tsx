@@ -10,6 +10,7 @@ import {
   Coffee,
   LoaderCircle,
   MapPin,
+  MessageCircle,
   Mountain,
   Navigation,
   Search,
@@ -40,22 +41,20 @@ const missionSteps = [
   }
 ];
 
-/* TODO: 매칭·커뮤니티 시스템 도입 시 예시 체류자를 실제 매칭 API 데이터로 교체한다.
 const sameMates = [
   {
     name: "김민준 · 28",
-    meta: "Lv.3 주민 · 강릉 3일 살기 · 반경 220m",
+    meta: "강릉 3일 살기 · 도보 8분",
     tag: "같은 미션 진행 중",
-    cta: "미션 같이하기 요청"
+    cta: "미션 같이하기 제안"
   },
   {
     name: "박서연 · 31",
-    meta: "Lv.4 메이트 · 체류 일정 겹침 8/17-8/19",
-    tag: "미션 클리어",
-    cta: "가이드 요청"
+    meta: "강릉 5일 살기 · 도보 4분",
+    tag: "오늘 근처에 있어요",
+    cta: "메시지 보내기"
   }
 ];
-*/
 
 const badges = [
   {
@@ -114,6 +113,7 @@ export default function MissionPage() {
     "idle" | "verifying" | "success"
   >("idle");
   const [missionFinished, setMissionFinished] = useState(false);
+  const [matchingPreviewOpen, setMatchingPreviewOpen] = useState(false);
   const verificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progress = Math.round((completedCount / missionSteps.length) * 100);
   const canCompleteMission = completedCount === missionSteps.length;
@@ -283,78 +283,53 @@ export default function MissionPage() {
                 </div>
               </div>
 
-              {/* TODO: 매칭 시스템 도입 시 팀 미션 제안 조건과 요청 API를 연결하고 복원한다.
-                  UsersRound 아이콘 import도 함께 복원한다.
-              <div className={styles.teamNotice}>
-                <div className="flex items-start gap-3">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#F4D690] text-[#8a5a12]">
-                    <UsersRound size={20} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[14px] font-black text-[#16211a]">
-                      2인 팀 미션 제안 대기 중
+              <section
+                className={styles.matchingPreview}
+                aria-label="동행 매칭 미리보기"
+              >
+                <div className={styles.mates}>
+                  <div className={styles.matesHeader}>
+                    <div>
+                      <h2 className={styles.sectionTitle}>
+                        <Leaf size={23} strokeWidth={1.5} /> 같은 미션 체류자
+                      </h2>
+                      <p>근처에서 같은 미션을 즐기는 체류자를 만나보세요.</p>
                     </div>
-                    <p className="mt-1 text-[12px] leading-relaxed text-[#8a6a2c]">
-                      여행 50% 지점을 지나면 같은 미션을 하는 체류자와 팀 미션을
-                      열 수 있어요.
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setMatchingPreviewOpen(true)}
+                    >
+                      전체 체류자 보기
+                    </button>
                   </div>
-                </div>
-              </div>
-              */}
-            </div>
-            {/* TODO: 매칭·커뮤니티 시스템 도입 시 체류자 조회, 함께하기·가이드 요청,
-                메시지 목록·채팅 이동을 실제 API에 연결하고 복원한다.
-                MessageCircle 아이콘 import도 함께 복원한다.
-            <div className={styles.secondaryColumn}>
-              <div className={styles.mates}>
-                <h2 className={styles.sectionTitle}>
-                  <Leaf size={23} strokeWidth={1.5} /> 같은 미션 체류자
-                </h2>
-                <p className="mt-1 text-[12px] leading-relaxed text-[#3d6b4d]">
-                  진행 중이거나 체류 일정이 겹치는 사람만 보여줘요.
-                </p>
-                <div className="mt-3 grid gap-2.5">
-                  {sameMates.map((mate) => (
-                    <div key={mate.name} className={styles.mate}>
-                      <div className={styles.mateProfile}>
-                        <div className={styles.avatar}>
-                          <CircleUserRound size={21} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className={styles.mateHeading}>
-                            <div className="text-sm font-black text-[#16211a]">
-                              {mate.name}
+                  <div className={styles.mateGrid}>
+                    {sameMates.map((mate) => (
+                      <article key={mate.name} className={styles.mate}>
+                        <div className={styles.mateProfile}>
+                          <span className={styles.avatar}>
+                            <CircleUserRound size={22} />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className={styles.mateHeading}>
+                              <strong>{mate.name}</strong>
+                              <span className={styles.mateTag}>{mate.tag}</span>
                             </div>
-                            <span className={styles.mateTag}>{mate.tag}</span>
+                            <p className={styles.mateMeta}>{mate.meta}</p>
                           </div>
-                          <div className={styles.mateMeta}>{mate.meta}</div>
                         </div>
-                      </div>
-                      <button className={styles.outlineButton}>
-                        {mate.cta}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Link href="/mission" className={styles.message}>
-                <MessageCircle size={20} className="text-[#1E7F3C]" />
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-black text-[#16211a]">
-                    메시지 · 팀 미션 연락
-                  </div>
-                  <div className="mt-1 truncate text-[12px] text-[#7b847d]">
-                    이도현 · 26 · 제안 대기중
+                        <button
+                          type="button"
+                          className={styles.outlineButton}
+                          onClick={() => setMatchingPreviewOpen(true)}
+                        >
+                          <MessageCircle size={15} /> {mate.cta}
+                        </button>
+                      </article>
+                    ))}
                   </div>
                 </div>
-                <span className="rounded-full bg-[#FBF0DA] px-3 py-1.5 text-[11px] font-bold text-[#8a5a12]">
-                  대기 1
-                </span>
-              </Link>
+              </section>
             </div>
-            */}
             <div className={styles.collection}>
               <h2 className={styles.collectionTitle}>배지 컬렉션</h2>
               <div className="mt-2 flex justify-end">
@@ -478,8 +453,54 @@ export default function MissionPage() {
             onVerify={simulateVerification}
           />
         )}
+        {matchingPreviewOpen && (
+          <MatchingPreviewModal onClose={() => setMatchingPreviewOpen(false)} />
+        )}
       </div>
     </main>
+  );
+}
+
+function MatchingPreviewModal({ onClose }: Readonly<{ onClose: () => void }>) {
+  return (
+    <div className={styles.modalBackdrop} onMouseDown={onClose}>
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label="동행 매칭 서비스 안내"
+        className={styles.matchingModal}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className={styles.modalHandle} />
+        <button
+          type="button"
+          onClick={onClose}
+          className={styles.matchingClose}
+          aria-label="닫기"
+        >
+          <X size={20} />
+        </button>
+        <span className={styles.matchingModalIcon}>
+          <UsersRound size={25} />
+        </span>
+        <p>동행 매칭 서비스</p>
+        <h2>같은 마을에서, 함께하는 미션</h2>
+        <div className={styles.matchingComingSoon}>
+          <strong>추후 제공 예정</strong>
+          <span>
+            체류 일정과 취향이 맞는 사람에게 안전하게 제안하고, 팀 미션을 함께
+            시작할 수 있어요.
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className={styles.matchingConfirm}
+        >
+          확인
+        </button>
+      </section>
+    </div>
   );
 }
 

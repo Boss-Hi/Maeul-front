@@ -6,7 +6,6 @@ import {
   Leaf,
   Music,
   Sun,
-  Trees,
   Waves,
   BriefcaseBusiness,
   CalendarDays,
@@ -27,6 +26,7 @@ import type { LucideIcon } from "lucide-react";
 import { TasteProfile } from "./taste-profile";
 import { getBirthProfile } from "./birth-profile";
 import { BirthDatePicker } from "./birth-date-picker";
+import { MaeulLogo } from "@/components/maeul-logo";
 
 type StepId = "age" | "job" | "purpose" | "theme" | "stay" | "food" | "pace";
 
@@ -309,7 +309,7 @@ export function OnboardingFlow({
               </Link>
             )}
             <span className="flex items-center gap-1.5 text-sm font-black tracking-[0.12em] text-[#12592C]">
-              <Trees size={18} /> MAEUL
+              <MaeulLogo size={24} className="rounded-[9px]" /> MAEUL
             </span>
             <span className="text-[11px] font-semibold text-[#52685a]">
               취향 산책

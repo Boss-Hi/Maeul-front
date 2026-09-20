@@ -37,6 +37,7 @@ import {
 } from "@tanstack/react-query";
 import { getFestivals, getFestivalCategories } from "@/lib/api/festivals";
 import { getRegions } from "@/lib/api/regions";
+import { MaeulLogo } from "@/components/maeul-logo";
 
 const categoryIcons = { EV: PartyPopper, EX: Camera, HS: Landmark, VE: Trees };
 
@@ -318,9 +319,7 @@ function HomeContent() {
         <header className={styles.header}>
           <div className={styles.headerTop}>
             <div className="flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-[14px] bg-[#12592C] text-[#a6e5b9]">
-                <Trees size={21} />
-              </span>
+              <MaeulLogo />
               <span className="text-[16px] font-black">MAEUL</span>
             </div>
 

@@ -1,6 +1,7 @@
-import { ArrowRight, Sparkles, Trees } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { SceneryIntro } from "./scenery-intro";
+import { MaeulLogo } from "@/components/maeul-logo";
 
 export default function StartPage() {
   return (
@@ -13,9 +14,7 @@ export default function StartPage() {
 
           <header className="relative z-10 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-[#12592C] text-[#8fdca8]">
-                <Trees size={20} />
-              </div>
+              <MaeulLogo />
               <span className="text-[17px] font-black tracking-[0.08em] text-[#12592C]">
                 MAEUL
               </span>

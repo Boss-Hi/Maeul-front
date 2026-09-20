@@ -10,11 +10,11 @@ import {
   Sun,
   Flag,
   MapPin,
-  Search,
-  Trees
+  Search
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
+import { MaeulLogo } from "@/components/maeul-logo";
 
 const titles = [
   "이번 여행,\n어디에 머무를까요?",
@@ -289,7 +289,7 @@ function PlanForm() {
               </Link>
             )}
             <span className="flex items-center gap-2 text-sm font-bold text-[#12592C]">
-              <Trees size={18} /> MAEUL
+              <MaeulLogo size={24} className="rounded-[9px]" /> MAEUL
             </span>
             <span className="text-xs text-[#52685a]">
               {step < 5 ? `${detail.label} ${step + 1}/5` : "여행 준비 완료"}
