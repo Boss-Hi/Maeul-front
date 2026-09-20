@@ -23,7 +23,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./home.module.css";
 import { RegionBanner } from "./region-banner";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from "react";
 import {
   useInfiniteQuery,
   useQuery,
@@ -82,6 +88,22 @@ const getDesktopSnapshot = () => window.matchMedia(desktopQuery).matches;
 const getServerSnapshot = () => false;
 
 export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeLoading() {
+  return (
+    <main className={styles.page}>
+      <div className={styles.shell} />
+    </main>
+  );
+}
+
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.toString();
