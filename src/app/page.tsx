@@ -1,9 +1,16 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { MessageCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { SceneryIntro } from "./scenery-intro";
 import { MaeulLogo } from "@/components/maeul-logo";
 
 export default function StartPage() {
+  const apiBaseUrl =
+    process.env.MAEUL_API_BASE_URL ?? "https://api.maeul.duckdns.org";
+  const kakaoLoginUrl = new URL(
+    "/oauth2/authorization/kakao",
+    apiBaseUrl
+  ).toString();
+
   return (
     <main className="h-dvh overflow-y-auto bg-[#e2ebe5] text-[#16211a]">
       <div className="mx-auto flex min-h-dvh w-full max-w-[600px] flex-col bg-[#F6FAF7] shadow-[0_0_38px_rgba(20,34,25,0.08)]">
@@ -49,13 +56,18 @@ export default function StartPage() {
             </SceneryIntro>
           </div>
 
-          <Link
-            href="/onboarding"
-            className="relative z-10 mt-4 flex h-[56px] w-full shrink-0 items-center justify-center gap-2 rounded-[17px] bg-[#12592C] text-[16px] font-black text-white shadow-[0_12px_28px_rgba(18,89,44,0.28)]"
-          >
-            시작하기
-            <ArrowRight size={19} />
-          </Link>
+          <div className="relative z-10 mt-4 shrink-0">
+            <Link
+              href={kakaoLoginUrl}
+              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[17px] bg-[#FEE500] text-[16px] font-black text-[#191919] shadow-[0_12px_28px_rgba(82,73,0,0.18)] transition-transform active:scale-[0.98]"
+            >
+              <MessageCircle size={19} fill="currentColor" strokeWidth={2} />
+              카카오로 시작하기
+            </Link>
+            <p className="mt-3 text-center text-[11px] leading-relaxed font-medium text-[#617467]">
+              로그인하면 나만의 마을 취향과 여행 기록을 이어갈 수 있어요.
+            </p>
+          </div>
         </section>
       </div>
     </main>
