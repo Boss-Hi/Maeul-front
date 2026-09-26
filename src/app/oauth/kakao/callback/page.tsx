@@ -4,8 +4,7 @@ import { AlertCircle, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
-
-const accessTokenKey = "maeul-access-token";
+import { ACCESS_TOKEN_STORAGE_KEY } from "@/lib/auth/session";
 
 export default function KakaoCallbackPage() {
   const router = useRouter();
@@ -22,7 +21,7 @@ export default function KakaoCallbackPage() {
   useEffect(() => {
     if (!hasValidToken || !token) return;
 
-    sessionStorage.setItem(accessTokenKey, token);
+    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
     window.history.replaceState({}, "", "/oauth/kakao/callback");
     router.replace("/onboarding");
   }, [hasValidToken, router, token]);

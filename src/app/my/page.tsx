@@ -8,9 +8,9 @@ import {
   CircleUserRound,
   Coffee,
   Leaf,
+  LogOut,
   MapPin,
   Search,
-  Settings,
   Sprout,
   Star,
   Tag,
@@ -19,7 +19,9 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
+import { ACCESS_TOKEN_STORAGE_KEY } from "@/lib/auth/session";
 
 const stats = [
   { label: "완료 미션", value: "12", Icon: Leaf },
@@ -54,6 +56,17 @@ const tabs = [
 
 export default function MyPage() {
   const [matePreviewOpen, setMatePreviewOpen] = useState(false);
+  const router = useRouter();
+  const isSignedIn = useSyncExternalStore(
+    () => () => undefined,
+    () => Boolean(sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)),
+    () => false
+  );
+
+  function logOut() {
+    sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    router.replace("/");
+  }
 
   return (
     <main className="h-dvh overflow-hidden bg-[#e8efed] text-[#24584d]">
@@ -69,12 +82,23 @@ export default function MyPage() {
               >
                 <ArrowLeft size={20} />
               </Link>
-              <button
-                aria-label="설정"
-                className="flex size-10 items-center justify-center rounded-full border border-white/85 bg-[#fffefbeb] text-[#315f50]"
-              >
-                <Settings size={20} />
-              </button>
+              {isSignedIn ? (
+                <button
+                  type="button"
+                  onClick={logOut}
+                  className="flex min-h-10 items-center gap-1.5 rounded-full border border-white/85 bg-[#fffefbeb] px-3 text-[12px] font-bold text-[#315f50]"
+                >
+                  <LogOut size={16} />
+                  로그아웃
+                </button>
+              ) : (
+                <Link
+                  href="/"
+                  className="flex min-h-10 items-center rounded-full border border-white/85 bg-[#fffefbeb] px-3 text-[12px] font-bold text-[#315f50]"
+                >
+                  로그인
+                </Link>
+              )}
             </div>
             <div className="relative mt-3.5 max-w-[500px]">
               <p className="text-[11px] leading-[1.8] font-bold text-[#315f50]">

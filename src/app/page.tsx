@@ -1,7 +1,7 @@
-import { MessageCircle, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { SceneryIntro } from "./scenery-intro";
 import { MaeulLogo } from "@/components/maeul-logo";
+import { AuthStartAction } from "./auth-start-action";
 
 export default function StartPage() {
   const apiBaseUrl =
@@ -57,16 +57,7 @@ export default function StartPage() {
           </div>
 
           <div className="relative z-10 mt-4 shrink-0">
-            <Link
-              href={kakaoLoginUrl}
-              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[17px] bg-[#FEE500] text-[16px] font-black text-[#191919] shadow-[0_12px_28px_rgba(82,73,0,0.18)] transition-transform active:scale-[0.98]"
-            >
-              <MessageCircle size={19} fill="currentColor" strokeWidth={2} />
-              카카오로 시작하기
-            </Link>
-            <p className="mt-3 text-center text-[11px] leading-relaxed font-medium text-[#617467]">
-              로그인하면 나만의 마을 취향과 여행 기록을 이어갈 수 있어요.
-            </p>
+            <AuthStartAction kakaoLoginUrl={kakaoLoginUrl} />
           </div>
         </section>
       </div>
