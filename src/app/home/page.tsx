@@ -35,7 +35,11 @@ import {
   useQuery,
   useQueryClient
 } from "@tanstack/react-query";
-import { getFestivals, getFestivalCategories } from "@/lib/api/festivals";
+import {
+  getFestivals,
+  getFestivalCategories,
+  getPopularFestivals
+} from "@/lib/api/festivals";
 import { getRegions } from "@/lib/api/regions";
 import { MaeulLogo } from "@/components/maeul-logo";
 
@@ -62,15 +66,6 @@ const categoryHeadingCopy: Record<
     national: "마을의 감각을 만나는 시간 어때요?"
   }
 };
-
-const topEvents = [
-  ["1", "강릉 커피 페스타", "강원 강릉시 · 8월 15일-22일"],
-  ["2", "속초 로스터리 커피 위크", "강원 속초시 · 8월 20일-27일"],
-  ["3", "양양 썬셋 비치 워케이션", "강원 양양군 · 9월 1일-15일"],
-  ["4", "제주 조천 귤밭 코리빙 토크", "제주 제주시 · 9월 1일-15일"],
-  ["5", "부산 영도 미식 & 로컬 크리에이터 페어", "부산 영도구 · 8월 20일-27일"],
-  ["6", "전주 한옥마을 전통 다도 & 명상 위크", "전북 전주시 · 8월 20일-27일"]
-];
 
 const tabs = [
   { label: "탐색", Icon: Search, active: true },
@@ -164,6 +159,11 @@ function HomeContent() {
     queryKey: ["regions"],
     queryFn: ({ signal }) => getRegions(signal)
   });
+  const popularFestivals = useQuery({
+    queryKey: ["festival-popular"],
+    queryFn: ({ signal }) => getPopularFestivals(signal),
+    enabled: !isRegionExplore
+  });
   const filters = [
     ...(categories.data ?? []).filter((category) => Boolean(category.code))
   ];
@@ -179,6 +179,7 @@ function HomeContent() {
       .includes(search.trim().toLocaleLowerCase())
   );
 
+  const topEvents = popularFestivals.data ?? [];
   const visibleTops = topsOpen ? topEvents : topEvents.slice(0, 4);
   const desktopData = festivals.data?.pages[0];
   const selectedRegion = regions.data?.find(
@@ -696,9 +697,33 @@ function HomeContent() {
               </h2>
 
               <div className="mt-4 overflow-hidden rounded-[22px] border border-[#e0e9e2] bg-white">
-                {visibleTops.map(([no, title, meta], index) => (
+                {popularFestivals.isLoading && (
+                  <p className="px-4 py-8 text-center text-xs text-[#738378]">
+                    인기 축제를 불러오는 중이에요.
+                  </p>
+                )}
+                {popularFestivals.isError && (
+                  <div className="px-4 py-6 text-center">
+                    <p className="text-xs text-[#738378]">
+                      인기 축제를 불러오지 못했어요.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void popularFestivals.refetch()}
+                      className="mt-3 rounded-lg border border-[#cfe0d5] px-3 py-2 text-xs font-bold text-[#1E7F3C]"
+                    >
+                      다시 시도
+                    </button>
+                  </div>
+                )}
+                {popularFestivals.isSuccess && !visibleTops.length && (
+                  <p className="px-4 py-8 text-center text-xs text-[#738378]">
+                    지금은 인기 축제 정보가 없어요.
+                  </p>
+                )}
+                {visibleTops.map((event, index) => (
                   <div
-                    key={title}
+                    key={event.id}
                     className="flex items-center gap-3 border-b border-[#edf2ee] px-4 py-4 last:border-b-0"
                   >
                     <div
@@ -708,37 +733,47 @@ function HomeContent() {
                           : "bg-[#EDF1EE] text-[#8a938c]"
                       }`}
                     >
-                      {no}
+                      {index + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-bold text-[#16211a]">
-                        {title}
+                        {event.title}
                       </div>
                       <div className="mt-0.5 flex items-center gap-1 text-[11px] text-[#8a938c]">
                         <MapPin size={12} />
-                        <span className="truncate">{meta}</span>
+                        <span className="truncate">
+                          {event.address || "지역 정보 준비 중"}
+                          {event.start
+                            ? ` · ${event.start}${event.end ? ` ~ ${event.end}` : ""}`
+                            : ""}
+                        </span>
                       </div>
                     </div>
-                    <button className="shrink-0 rounded-[9px] border border-[#cfe0d5] bg-[#EAF6EE] px-2.5 py-2 text-[11px] font-bold text-[#1E7F3C]">
-                      플랜 선택
-                    </button>
+                    <Link
+                      href={`/event?contentId=${encodeURIComponent(event.id ?? "")}`}
+                      className="shrink-0 rounded-[9px] border border-[#cfe0d5] bg-[#EAF6EE] px-2.5 py-2 text-[11px] font-bold text-[#1E7F3C]"
+                    >
+                      상세 보기
+                    </Link>
                   </div>
                 ))}
-                <button
-                  onClick={() => setTopsOpen((open) => !open)}
-                  aria-expanded={topsOpen}
-                  className="flex w-full items-center justify-center gap-1 bg-[#FAFCFB] px-3 py-3 text-sm font-bold text-[#1E7F3C]"
-                >
-                  {topsOpen ? (
-                    <>
-                      접기 <ChevronUp size={16} />
-                    </>
-                  ) : (
-                    <>
-                      TOP 100 더보기 <ChevronDown size={16} />
-                    </>
-                  )}
-                </button>
+                {topEvents.length > 4 && (
+                  <button
+                    onClick={() => setTopsOpen((open) => !open)}
+                    aria-expanded={topsOpen}
+                    className="flex w-full items-center justify-center gap-1 bg-[#FAFCFB] px-3 py-3 text-sm font-bold text-[#1E7F3C]"
+                  >
+                    {topsOpen ? (
+                      <>
+                        접기 <ChevronUp size={16} />
+                      </>
+                    ) : (
+                      <>
+                        인기 축제 더보기 <ChevronDown size={16} />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </>
           )}

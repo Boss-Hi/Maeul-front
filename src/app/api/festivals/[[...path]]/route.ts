@@ -7,7 +7,10 @@ export async function GET(
   const { path = [] } = await context.params;
   if (
     path.length &&
-    (path.length !== 1 || (path[0] !== "categories" && !/^\d+$/.test(path[0])))
+    (path.length !== 1 ||
+      (path[0] !== "categories" &&
+        path[0] !== "popular" &&
+        !/^\d+$/.test(path[0])))
   )
     return NextResponse.json(
       { message: "요청한 API가 없어요." },

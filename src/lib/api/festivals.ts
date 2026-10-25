@@ -122,6 +122,13 @@ export async function getFestival(contentId: string, signal?: AbortSignal) {
       await getJson(`/api/festivals/${encodeURIComponent(contentId)}`, signal)
     ).data;
 }
+
+export async function getPopularFestivals(signal?: AbortSignal) {
+  return z
+    .object({ success: z.literal(true), data: z.array(festivalSchema) })
+    .parse(await getJson("/api/festivals/popular", signal)).data;
+}
+
 export async function getFestivalCategories(signal?: AbortSignal) {
   return z
     .array(categorySchema)

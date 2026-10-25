@@ -20,9 +20,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore } from "react";
-import { ACCESS_TOKEN_STORAGE_KEY } from "@/lib/auth/session";
-import { isAccessTokenExpired } from "@/lib/auth/session";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { getMyProfile, type UserProfile } from "@/lib/api/profile";
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  isAccessTokenExpired
+} from "@/lib/auth/session";
 
 const stats = [
   { label: "완료 미션", value: "12", Icon: Leaf },
@@ -57,6 +60,9 @@ const tabs = [
 
 export default function MyPage() {
   const [matePreviewOpen, setMatePreviewOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [profileLoadError, setProfileLoadError] = useState("");
   const router = useRouter();
   const token = useSyncExternalStore(
     () => () => undefined,
@@ -64,9 +70,46 @@ export default function MyPage() {
     () => null
   );
   const isSignedIn = Boolean(token && !isAccessTokenExpired(token));
+  const displayName =
+    profile?.nickname?.trim() ||
+    profile?.name?.trim() ||
+    (isSignedIn ? "마을 여행자" : "로그인하고 시작해요");
+  const profileDescription = profile?.description?.trim();
+
+  useEffect(() => {
+    if (!token || !isSignedIn) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const requestId = window.setTimeout(() => {
+      setIsProfileLoading(true);
+      setProfileLoadError("");
+
+      void getMyProfile(token, controller.signal)
+        .then((nextProfile) => setProfile(nextProfile))
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          setProfileLoadError(
+            error instanceof Error
+              ? error.message
+              : "프로필 정보를 불러오지 못했어요."
+          );
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setIsProfileLoading(false);
+        });
+    }, 0);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(requestId);
+    };
+  }, [isSignedIn, token]);
 
   function logOut() {
     sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    setProfile(null);
     router.replace("/");
   }
 
@@ -117,16 +160,31 @@ export default function MyPage() {
               <Leaf className="absolute -right-3 bottom-1 size-20 rotate-[20deg] text-[#b6d9ae]/55" />
               <div className="relative flex items-center gap-3.5">
                 <div className="flex size-[74px] shrink-0 items-center justify-center rounded-[24px] bg-[#e7f4e8] text-[#4b906c] shadow-inner">
-                  <CircleUserRound size={43} strokeWidth={1.7} />
+                  {profile?.avatarUrl ? (
+                    <span
+                      aria-hidden="true"
+                      className="size-full rounded-[24px] bg-cover bg-center"
+                      style={{ backgroundImage: `url(${profile.avatarUrl})` }}
+                    />
+                  ) : (
+                    <CircleUserRound size={43} strokeWidth={1.7} />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="truncate text-[24px] font-black tracking-normal text-[#24584d]">
-                      데이비드
+                      {displayName}
                     </h1>
                   </div>
                   <p className="mt-1.5 text-[13px] leading-relaxed text-[#72877a]">
-                    커피와 독서를 좋아하는 강릉 체류자
+                    {profileDescription ||
+                      (isProfileLoading
+                        ? "프로필 정보를 불러오는 중이에요."
+                        : profileLoadError ||
+                          profile?.email ||
+                          (isSignedIn
+                            ? "등록된 계정 정보를 불러오고 있어요."
+                            : "로그인하고 나만의 마을 취향을 만들어 보세요."))}
                   </p>
                 </div>
               </div>
