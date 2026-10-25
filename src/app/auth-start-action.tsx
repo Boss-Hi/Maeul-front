@@ -3,16 +3,20 @@
 import { ArrowRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
-import { ACCESS_TOKEN_STORAGE_KEY } from "@/lib/auth/session";
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  isAccessTokenExpired
+} from "@/lib/auth/session";
 
 export function AuthStartAction({
   kakaoLoginUrl
 }: Readonly<{ kakaoLoginUrl: string }>) {
-  const isSignedIn = useSyncExternalStore(
+  const token = useSyncExternalStore(
     () => () => undefined,
-    () => Boolean(sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)),
-    () => false
+    () => sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY),
+    () => null
   );
+  const isSignedIn = Boolean(token && !isAccessTokenExpired(token));
 
   return isSignedIn ? (
     <Link

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Survey } from "@/lib/api/surveys";
 
 const preparation = [
   {
@@ -50,8 +51,9 @@ const travelTypes: Record<string, { title: string; description: string }> = {
 };
 
 export function TasteProfile({
-  answers
-}: Readonly<{ answers: Record<string, string[]> }>) {
+  answers,
+  survey
+}: Readonly<{ answers: Record<string, string[]>; survey: Survey }>) {
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
@@ -62,28 +64,51 @@ export function TasteProfile({
     return () => timers.forEach(window.clearTimeout);
   }, []);
 
-  const purpose = answers.purpose?.[0] ?? "";
+  const answerKeyByQuestionId: Record<number, string> = {
+    1: "age",
+    2: "job",
+    3: "purpose",
+    4: "theme",
+    5: "stay",
+    6: "food",
+    7: "pace"
+  };
+  const selectedLabels = (questionId: number) => {
+    const question = survey.questions.find(
+      (item) => item.questionId === questionId
+    );
+    const answerKey = answerKeyByQuestionId[questionId];
+    const selected = answerKey ? (answers[answerKey] ?? []) : [];
+
+    return question
+      ? question.options
+          .filter((option) => selected.includes(option.label))
+          .map((option) => option.label)
+      : selected;
+  };
+
+  const purpose = selectedLabels(3)[0] ?? "";
   const profile = travelTypes[purpose] ?? {
     title: "나만의 마을을 찾는 여행자",
     description: "당신의 취향으로, 익숙하지 않은 동네에 조금 더 가까이."
   };
-  const themes = answers.theme ?? [];
+  const themes = selectedLabels(4);
   const details = [
     {
       label: "머무는 공간",
-      value: answers.stay?.join(", "),
+      value: selectedLabels(5).join(", "),
       Icon: House,
       color: "bg-[#eaf3e7] text-[#4b7045]"
     },
     {
       label: "하루의 속도",
-      value: answers.pace?.join(", "),
+      value: selectedLabels(7).join(", "),
       Icon: Sun,
       color: "bg-[#fff2d9] text-[#a87826]"
     },
     {
       label: "좋아하는 한 끼",
-      value: answers.food?.join(" · "),
+      value: selectedLabels(6).join(" · "),
       Icon: Coffee,
       color: "bg-[#f6ebe0] text-[#966b47]"
     }
@@ -128,7 +153,7 @@ export function TasteProfile({
             ))}
           </div>
           <p className="mt-8 text-xs text-[#86958b]">
-            일곱 가지 선택, 하나의 나다운 여행
+            {survey.questions.length}가지 선택, 하나의 나다운 여행
           </p>
         </div>
       </section>
@@ -207,8 +232,8 @@ export function TasteProfile({
           ))}
         </div>
         <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 px-1 text-xs leading-6 text-[#829086]">
-          <span>{answers.age?.join(", ")}</span>
-          <span>{answers.job?.join(", ")}</span>
+          <span>{selectedLabels(1).join(", ")}</span>
+          <span>{selectedLabels(2).join(", ")}</span>
           <span>{purpose}</span>
         </div>
 

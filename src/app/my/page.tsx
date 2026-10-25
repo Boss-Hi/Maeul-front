@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { ACCESS_TOKEN_STORAGE_KEY } from "@/lib/auth/session";
+import { isAccessTokenExpired } from "@/lib/auth/session";
 
 const stats = [
   { label: "완료 미션", value: "12", Icon: Leaf },
@@ -57,11 +58,12 @@ const tabs = [
 export default function MyPage() {
   const [matePreviewOpen, setMatePreviewOpen] = useState(false);
   const router = useRouter();
-  const isSignedIn = useSyncExternalStore(
+  const token = useSyncExternalStore(
     () => () => undefined,
-    () => Boolean(sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)),
-    () => false
+    () => sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY),
+    () => null
   );
+  const isSignedIn = Boolean(token && !isAccessTokenExpired(token));
 
   function logOut() {
     sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);

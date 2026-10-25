@@ -12,21 +12,31 @@ import {
   Check,
   ChevronRight,
   Coffee,
+  Compass,
+  Flower2,
   Heart,
   Home,
   MapPinned,
   Palette,
   Sparkles,
+  Sprout,
+  Sunrise,
+  Trees,
   UserRound,
   Utensils
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { TasteProfile } from "./taste-profile";
-import { getBirthProfile } from "./birth-profile";
-import { BirthDatePicker } from "./birth-date-picker";
 import { MaeulLogo } from "@/components/maeul-logo";
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  getOnboardingCompletionKey,
+  isAccessTokenExpired
+} from "@/lib/auth/session";
+import { getFirstSurvey, storeSurvey, type Survey } from "@/lib/api/surveys";
 
 type StepId = "age" | "job" | "purpose" | "theme" | "stay" | "food" | "pace";
 
@@ -38,6 +48,7 @@ type Option = {
 
 type OnboardingStep = {
   id: StepId;
+  questionId: number;
   kicker: string;
   Icon: LucideIcon;
   title: string;
@@ -49,6 +60,7 @@ type OnboardingStep = {
 const steps: OnboardingStep[] = [
   {
     id: "age",
+    questionId: 1,
     kicker: "첫 인사",
     Icon: Leaf,
     title: "반가워요!\n생일을 알려줄래요?",
@@ -58,6 +70,7 @@ const steps: OnboardingStep[] = [
   },
   {
     id: "job",
+    questionId: 2,
     kicker: "일상의 한 조각",
     Icon: BriefcaseBusiness,
     title: "여행 가방 옆에,\n어떤 일상이 있나요?",
@@ -88,6 +101,7 @@ const steps: OnboardingStep[] = [
   },
   {
     id: "purpose",
+    questionId: 3,
     kicker: "떠나는 이유",
     Icon: Heart,
     title: "이번 여행에는\n어떤 마음을 담을까요?",
@@ -118,6 +132,7 @@ const steps: OnboardingStep[] = [
   },
   {
     id: "theme",
+    questionId: 4,
     kicker: "마음이 가는 곳",
     Icon: Sparkles,
     title: "낯선 골목에서,\n어디에 눈길이 가나요?",
@@ -136,6 +151,7 @@ const steps: OnboardingStep[] = [
   },
   {
     id: "stay",
+    questionId: 5,
     kicker: "하룻밤의 취향",
     Icon: Home,
     title: "하루 끝, 어디에서\n쉬고 싶나요?",
@@ -165,6 +181,7 @@ const steps: OnboardingStep[] = [
   },
   {
     id: "food",
+    questionId: 6,
     kicker: "맛있는 순간",
     Icon: Coffee,
     title: "맛있는 냄새를 따라\n어디로 가볼까요?",
@@ -182,6 +199,7 @@ const steps: OnboardingStep[] = [
   },
   {
     id: "pace",
+    questionId: 7,
     kicker: "나만의 보폭",
     Icon: Sun,
     title: "이 마을을 걷는\n당신의 속도는?",
@@ -209,16 +227,79 @@ const initialAnswers = steps.reduce(
   {} as Record<StepId, string[]>
 );
 
-// Pass a normalized YYYY-MM-DD date here when the authenticated profile is connected.
+const ageIcons: Record<string, LucideIcon> = {
+  "10대": Sprout,
+  "20대": Sunrise,
+  "30대": Compass,
+  "40대": Trees,
+  "50대": Coffee,
+  "60대": Flower2
+};
+
+function toSurveyAnswers(survey: Survey, answers: Record<StepId, string[]>) {
+  return [...survey.questions]
+    .sort((first, second) => first.stepOrder - second.stepOrder)
+    .flatMap((question) => {
+      const step = steps.find(
+        (item) => item.questionId === question.questionId
+      );
+      if (!step) return [];
+
+      const selectedOptionIds = answers[step.id]
+        .map(
+          (label) =>
+            question.options.find((option) => option.label === label)?.optionId
+        )
+        .filter((optionId): optionId is number => optionId !== undefined);
+
+      if (selectedOptionIds.length !== answers[step.id].length) {
+        throw new Error("선택한 취향 정보를 다시 확인해 주세요.");
+      }
+
+      return [{ questionId: question.questionId, selectedOptionIds }];
+    });
+}
+
+function getConfiguredSteps(survey: Survey) {
+  return [...survey.questions]
+    .sort((first, second) => first.stepOrder - second.stepOrder)
+    .flatMap((question) => {
+      const presentation = steps.find(
+        (step) => step.questionId === question.questionId
+      );
+      if (!presentation) return [];
+
+      return [
+        {
+          ...presentation,
+          kicker: question.stepBadge ?? presentation.kicker,
+          title: question.title,
+          subtitle: question.subTitle ?? presentation.subtitle,
+          multi: question.questionType === "MULTIPLE_CHOICE",
+          options: question.options.map((option) => ({
+            label: option.label,
+            desc: option.subLabel ?? undefined,
+            Icon:
+              presentation.options.find((item) => item.label === option.label)
+                ?.Icon ?? presentation.Icon
+          }))
+        }
+      ];
+    });
+}
+
 export function OnboardingFlow({
-  initialBirthDate = ""
-}: Readonly<{ initialBirthDate?: string }>) {
+  initialSurvey
+}: Readonly<{ initialSurvey: Survey | null }>) {
+  const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
-  const [birthDate, setBirthDate] = useState(initialBirthDate);
-  const [answers, setAnswers] = useState(() => {
-    const profile = getBirthProfile(initialBirthDate);
-    return { ...initialAnswers, age: profile ? [profile.ageGroup] : [] };
-  });
+  const [survey, setSurvey] = useState<Survey | null>(initialSurvey);
+  const [surveyLoadError, setSurveyLoadError] = useState("");
+  const [surveyRequest, setSurveyRequest] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [authExpired, setAuthExpired] = useState(false);
+  const [answers, setAnswers] = useState(initialAnswers);
 
   useEffect(() => {
     window.history.replaceState(
@@ -244,19 +325,77 @@ export function OnboardingFlow({
     return () => window.removeEventListener("popstate", restoreStep);
   }, []);
 
-  const isComplete = stepIndex >= steps.length;
-  const currentStep = steps[Math.min(stepIndex, steps.length - 1)];
+  useEffect(() => {
+    if (survey) return;
+
+    let cancelled = false;
+    const timerId = window.setTimeout(() => {
+      void getFirstSurvey()
+        .then((nextSurvey) => {
+          if (cancelled) return;
+          setSurvey(nextSurvey);
+          setSurveyLoadError("");
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setSurveyLoadError(
+            "취향 질문을 준비하지 못했어요. 다시 시도해 주세요."
+          );
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
+  }, [survey, surveyRequest]);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+    const completionKey = token ? getOnboardingCompletionKey(token) : null;
+    if (completionKey && localStorage.getItem(completionKey) === "true") {
+      router.replace("/home");
+    }
+  }, [router]);
+
+  const configuredSteps = survey ? getConfiguredSteps(survey) : [];
+  const isComplete = stepIndex >= configuredSteps.length;
+  const currentStep =
+    configuredSteps[Math.min(stepIndex, configuredSteps.length - 1)];
+
+  if (!survey || !currentStep) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center bg-[#e7eae7] px-5 text-[#16211a]">
+        <section className="w-full max-w-[420px] rounded-[28px] border border-[#d3e5d8] bg-white p-7 text-center shadow-[0_8px_28px_rgba(52,78,34,0.04)]">
+          <span className="mx-auto flex size-14 items-center justify-center rounded-[20px] bg-[#eaf6ee] text-[#1E7F3C]">
+            <Leaf size={26} />
+          </span>
+          <h1 className="mt-4 text-[21px] font-black text-[#12592C]">
+            {surveyLoadError
+              ? "취향 질문을 준비하지 못했어요"
+              : "취향 지도를 준비하고 있어요"}
+          </h1>
+          <p className="mt-2 text-[13px] leading-relaxed text-[#72877a]">
+            {surveyLoadError || "마을에 맞는 질문을 불러오는 중이에요."}
+          </p>
+          {surveyLoadError && (
+            <button
+              type="button"
+              onClick={() => setSurveyRequest((value) => value + 1)}
+              className="mt-6 min-h-[50px] w-full rounded-[16px] bg-[#12592C] text-[14px] font-bold text-white"
+            >
+              다시 시도하기
+            </button>
+          )}
+        </section>
+      </main>
+    );
+  }
+
   const StepIcon = currentStep.Icon;
-  const birthProfile = getBirthProfile(birthDate);
   const selected = answers[currentStep.id];
 
   const canGoNext = isComplete || selected.length > 0;
-
-  function updateBirthDate(value: string) {
-    setBirthDate(value);
-    const profile = getBirthProfile(value);
-    setAnswers((prev) => ({ ...prev, age: profile ? [profile.ageGroup] : [] }));
-  }
 
   function toggleOption(option: string) {
     setAnswers((prev) => {
@@ -271,8 +410,58 @@ export function OnboardingFlow({
     });
   }
 
-  function goNext() {
-    if (!canGoNext || isComplete) return;
+  async function goNext() {
+    if (!canGoNext || isComplete || isSaving) return;
+
+    if (stepIndex === configuredSteps.length - 1) {
+      const token = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+      if (!token) {
+        setSaveError("로그인 정보를 찾지 못했어요. 다시 로그인해 주세요.");
+        return;
+      }
+      if (isAccessTokenExpired(token)) {
+        sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+        setAuthExpired(true);
+        setSaveError("로그인 시간이 만료됐어요. 다시 로그인해 주세요.");
+        return;
+      }
+      if (!survey) {
+        setSaveError(
+          "취향 질문을 불러오는 중이에요. 잠시 후 다시 시도해 주세요."
+        );
+        return;
+      }
+
+      setIsSaving(true);
+      setSaveError("");
+      try {
+        await storeSurvey(
+          {
+            surveyId: survey.surveyId,
+            answers: toSurveyAnswers(survey, answers)
+          },
+          token
+        );
+        const completionKey = getOnboardingCompletionKey(token);
+        if (completionKey) localStorage.setItem(completionKey, "true");
+        const nextIndex = configuredSteps.length;
+        window.history.pushState(
+          { ...window.history.state, maeulOnboardingStep: nextIndex },
+          ""
+        );
+        setStepIndex(nextIndex);
+      } catch (error) {
+        setSaveError(
+          error instanceof Error
+            ? error.message
+            : "취향 정보를 저장하지 못했어요."
+        );
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
     const nextIndex = stepIndex + 1;
     window.history.pushState(
       { ...window.history.state, maeulOnboardingStep: nextIndex },
@@ -317,9 +506,9 @@ export function OnboardingFlow({
           </div>
           <div
             className="mt-5 flex items-center gap-1.5"
-            aria-label={`취향 산책 ${Math.min(stepIndex + 1, steps.length)} / ${steps.length} 단계`}
+            aria-label={`취향 산책 ${Math.min(stepIndex + 1, configuredSteps.length)} / ${configuredSteps.length} 단계`}
           >
-            {steps.map((step, index) => (
+            {configuredSteps.map((step, index) => (
               <div
                 key={step.id}
                 aria-current={
@@ -332,7 +521,7 @@ export function OnboardingFlow({
         </header>
 
         {isComplete ? (
-          <TasteProfile answers={answers} />
+          <TasteProfile answers={answers} survey={survey} />
         ) : (
           <section className="flex min-h-0 flex-1 flex-col">
             <div
@@ -365,108 +554,81 @@ export function OnboardingFlow({
                   {currentStep.subtitle}
                 </p>
 
-                {currentStep.id === "age" ? (
-                  <div className="mt-6 rounded-[24px] border border-[#d3e5d8] bg-white p-5 shadow-[0_8px_28px_rgba(52,78,34,0.04)]">
-                    <div className="mb-5 flex items-center justify-between border-b border-dashed border-[#d3e5d8] pb-4">
-                      <span className="text-[10px] font-black tracking-[0.16em] text-[#528363]">
-                        MY FIRST PAGE
-                      </span>
-                      <CalendarDays size={19} className="text-[#1E7F3C]" />
-                    </div>
-                    <BirthDatePicker
-                      initialValue={birthDate}
-                      onChange={updateBirthDate}
-                    />
-                    <div
-                      id="birth-help"
-                      aria-live="polite"
-                      className="mt-4 text-xs leading-6"
-                    >
-                      {birthProfile ? (
-                        <span className="flex items-center gap-2 text-[#1E7F3C]">
-                          <Check size={15} />만 {birthProfile.age}세 ·{" "}
-                          {birthProfile.ageGroup} 취향으로 담아둘게요.
-                        </span>
-                      ) : (
-                        <span className="text-[#73877a]">
-                          생년월일을 입력하면 나이대를 자동으로 알아봐요.
-                        </span>
-                      )}
-                    </div>
+                <div className="mt-6">
+                  <div className="mb-3 flex items-center justify-between text-[11px] font-semibold text-[#627c6a]">
+                    <span>
+                      {currentStep.multi
+                        ? "마음 가는 만큼 골라요"
+                        : "가장 나다운 하나를 골라요"}
+                    </span>
+                    <span aria-live="polite">
+                      {selected.length > 0
+                        ? `${selected.length}개 담았어요`
+                        : ""}
+                    </span>
                   </div>
-                ) : (
-                  <div className="mt-6">
-                    <div className="mb-3 flex items-center justify-between text-[11px] font-semibold text-[#627c6a]">
-                      <span>
-                        {currentStep.multi
-                          ? "마음 가는 만큼 골라요"
-                          : "가장 나다운 하나를 골라요"}
-                      </span>
-                      <span aria-live="polite">
-                        {selected.length > 0
-                          ? `${selected.length}개 담았어요`
-                          : ""}
-                      </span>
-                    </div>
-                    <div
-                      role="group"
-                      aria-label={currentStep.title.replace(/\n/g, " ")}
-                      className={
-                        currentStep.options.some((option) => option.desc)
-                          ? "grid gap-3"
-                          : "grid grid-cols-2 gap-3"
-                      }
-                    >
-                      {currentStep.options.map(({ label, desc, Icon }) => {
-                        const active = selected.includes(label);
-                        return (
-                          <button
-                            key={label}
-                            onClick={() => toggleOption(label)}
-                            aria-pressed={active}
-                            className={`relative rounded-[20px] border p-4 text-left transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E7F3C] motion-safe:active:scale-[0.98] ${active ? "border-[#1E7F3C] bg-[#EAF6EE] shadow-[0_5px_18px_rgba(18,89,44,0.12)]" : "border-[#dce7df] bg-white hover:border-[#86b796] hover:bg-[#F3F9F5]"}`}
+                  <div
+                    role="group"
+                    aria-label={currentStep.title.replace(/\n/g, " ")}
+                    className={
+                      currentStep.options.some((option) => option.desc)
+                        ? "grid gap-3"
+                        : "grid grid-cols-2 gap-3"
+                    }
+                  >
+                    {currentStep.options.map(({ label, desc, Icon }) => {
+                      const active = selected.includes(label);
+                      const AgeIcon =
+                        currentStep.id === "age" ? ageIcons[label] : undefined;
+                      return (
+                        <button
+                          key={label}
+                          onClick={() => toggleOption(label)}
+                          aria-pressed={active}
+                          className={`relative rounded-[20px] border p-4 text-left transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1E7F3C] motion-safe:active:scale-[0.98] ${active ? "border-[#1E7F3C] bg-[#EAF6EE] shadow-[0_5px_18px_rgba(18,89,44,0.12)]" : "border-[#dce7df] bg-white hover:border-[#86b796] hover:bg-[#F3F9F5]"}`}
+                        >
+                          <div
+                            className={`flex gap-3 ${desc ? "items-center" : "flex-col"}`}
                           >
-                            <div
-                              className={`flex gap-3 ${desc ? "items-center" : "flex-col"}`}
+                            <span
+                              className={`flex size-10 shrink-0 items-center justify-center rounded-[14px] ${active ? "bg-[#12592C] text-white" : "bg-[#EAF6EE] text-[#1E7F3C]"}`}
                             >
+                              {AgeIcon ? (
+                                <AgeIcon size={20} strokeWidth={1.7} />
+                              ) : Icon ? (
+                                <Icon size={20} strokeWidth={1.7} />
+                              ) : (
+                                <Sun size={20} strokeWidth={1.7} />
+                              )}
+                            </span>
+                            <div className="min-w-0 flex-1 pr-5">
                               <span
-                                className={`flex size-10 shrink-0 items-center justify-center rounded-[14px] ${active ? "bg-[#12592C] text-white" : "bg-[#EAF6EE] text-[#1E7F3C]"}`}
+                                className={`text-[15px] font-bold ${active ? "text-[#12592C]" : "text-[#354d3c]"}`}
                               >
-                                {Icon ? (
-                                  <Icon size={20} strokeWidth={1.7} />
-                                ) : (
-                                  <Sun size={20} strokeWidth={1.7} />
-                                )}
+                                {label}
                               </span>
-                              <div className="min-w-0 flex-1 pr-5">
-                                <span
-                                  className={`text-[15px] font-bold ${active ? "text-[#12592C]" : "text-[#354d3c]"}`}
-                                >
-                                  {label}
-                                </span>
-                                {desc && (
-                                  <p className="mt-1 text-xs leading-5 text-[#6c8072]">
-                                    {desc}
-                                  </p>
-                                )}
-                              </div>
-                              <span
-                                className={`absolute top-4 right-3 flex size-4 items-center justify-center rounded-full ${active ? "bg-[#12592C] text-white" : "border border-[#bed5c5]"}`}
-                              >
-                                {active && <Check size={11} strokeWidth={3} />}
-                              </span>
+                              {desc && (
+                                <p className="mt-1 text-xs leading-5 text-[#6c8072]">
+                                  {desc}
+                                </p>
+                              )}
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                            <span
+                              className={`absolute top-4 right-3 flex size-4 items-center justify-center rounded-full ${active ? "bg-[#12592C] text-white" : "border border-[#bed5c5]"}`}
+                            >
+                              {active && <Check size={11} strokeWidth={3} />}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
                 <p className="mt-6 flex items-center justify-center gap-1.5 text-[11px] text-[#799381]">
                   <Leaf size={12} />
                   {stepIndex === 0
                     ? "작은 인사부터, 나다운 여행의 시작"
-                    : stepIndex === steps.length - 1
+                    : stepIndex === configuredSteps.length - 1
                       ? "당신의 취향 지도가 거의 완성됐어요"
                       : "하나씩 고를수록, 조금 더 나다운 마을"}
                 </p>
@@ -474,18 +636,38 @@ export function OnboardingFlow({
             </div>
 
             <footer className="shrink-0 border-t border-[#dce7df] bg-[#F5F8F6] px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <button
-                onClick={goNext}
-                disabled={!canGoNext}
-                className={`flex h-14 w-full items-center justify-center gap-2 rounded-[17px] text-[15px] font-bold transition ${canGoNext ? "bg-[#12592C] text-white shadow-[0_8px_22px_rgba(30,127,60,0.16)]" : "bg-[#E2E8E4] text-[#95a89a]"}`}
-              >
-                {stepIndex === steps.length - 1
-                  ? "내 취향 확인하기"
-                  : stepIndex === 0
-                    ? "좋아요, 취향 산책 시작"
-                    : "좋아요, 다음으로"}
-                <ChevronRight size={18} />
-              </button>
+              {saveError && (
+                <p
+                  role="alert"
+                  className="mb-2 text-center text-[11px] font-semibold text-[#bd5b4d]"
+                >
+                  {saveError}
+                </p>
+              )}
+              {authExpired ? (
+                <Link
+                  href="/"
+                  className="flex h-14 w-full items-center justify-center gap-2 rounded-[17px] bg-[#12592C] text-[15px] font-bold text-white shadow-[0_8px_22px_rgba(30,127,60,0.16)]"
+                >
+                  다시 로그인하기
+                  <ChevronRight size={18} />
+                </Link>
+              ) : (
+                <button
+                  onClick={goNext}
+                  disabled={!canGoNext || isSaving}
+                  className={`flex h-14 w-full items-center justify-center gap-2 rounded-[17px] text-[15px] font-bold transition ${canGoNext && !isSaving ? "bg-[#12592C] text-white shadow-[0_8px_22px_rgba(30,127,60,0.16)]" : "bg-[#E2E8E4] text-[#95a89a]"}`}
+                >
+                  {isSaving
+                    ? "취향 저장 중"
+                    : stepIndex === configuredSteps.length - 1
+                      ? "내 취향 확인하기"
+                      : stepIndex === 0
+                        ? "좋아요, 취향 산책 시작"
+                        : "좋아요, 다음으로"}
+                  <ChevronRight size={18} />
+                </button>
+              )}
             </footer>
           </section>
         )}
