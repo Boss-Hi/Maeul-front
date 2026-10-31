@@ -33,10 +33,17 @@ import { TasteProfile } from "./taste-profile";
 import { MaeulLogo } from "@/components/maeul-logo";
 import {
   ACCESS_TOKEN_STORAGE_KEY,
-  getOnboardingCompletionKey,
-  isAccessTokenExpired
+  isAccessTokenExpired,
+  isAccessTokenWellFormed
 } from "@/lib/auth/session";
-import { getFirstSurvey, storeSurvey, type Survey } from "@/lib/api/surveys";
+import {
+  getCurrentSurveyResponse,
+  getFirstSurvey,
+  storeSurvey,
+  updateSurveyResponse,
+  type Survey,
+  type SurveyResponse
+} from "@/lib/api/surveys";
 
 type StepId = "age" | "job" | "purpose" | "theme" | "stay" | "food" | "pace";
 
@@ -250,14 +257,36 @@ function toSurveyAnswers(survey: Survey, answers: Record<StepId, string[]>) {
           (label) =>
             question.options.find((option) => option.label === label)?.optionId
         )
-        .filter((optionId): optionId is number => optionId !== undefined);
+        .filter((optionId): optionId is number => Number.isInteger(optionId));
 
-      if (selectedOptionIds.length !== answers[step.id].length) {
+      if (
+        selectedOptionIds.length === 0 ||
+        selectedOptionIds.length !== answers[step.id].length
+      ) {
         throw new Error("선택한 취향 정보를 다시 확인해 주세요.");
       }
 
       return [{ questionId: question.questionId, selectedOptionIds }];
     });
+}
+
+function toAnswerState(survey: Survey, response: NonNullable<SurveyResponse>) {
+  return response.answers.reduce(
+    (nextAnswers, answer) => {
+      const step = steps.find((item) => item.questionId === answer.questionId);
+      const question = survey.questions.find(
+        (item) => item.questionId === answer.questionId
+      );
+      const option = question?.options.find(
+        (item) => item.optionId === answer.optionId
+      );
+      if (!step || !option) return nextAnswers;
+
+      nextAnswers[step.id] = [...nextAnswers[step.id], option.label];
+      return nextAnswers;
+    },
+    { ...initialAnswers }
+  );
 }
 
 function getConfiguredSteps(survey: Survey) {
@@ -289,8 +318,9 @@ function getConfiguredSteps(survey: Survey) {
 }
 
 export function OnboardingFlow({
-  initialSurvey
-}: Readonly<{ initialSurvey: Survey | null }>) {
+  initialSurvey,
+  editRequested = false
+}: Readonly<{ initialSurvey: Survey | null; editRequested?: boolean }>) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [survey, setSurvey] = useState<Survey | null>(initialSurvey);
@@ -300,6 +330,13 @@ export function OnboardingFlow({
   const [saveError, setSaveError] = useState("");
   const [authExpired, setAuthExpired] = useState(false);
   const [answers, setAnswers] = useState(initialAnswers);
+  const [entryState, setEntryState] = useState<
+    "checking" | "ready" | "unauthenticated" | "error"
+  >("checking");
+  const [entryError, setEntryError] = useState("");
+  const [entryRequest, setEntryRequest] = useState(0);
+  const [currentResponse, setCurrentResponse] = useState<SurveyResponse>(null);
+  const [answersHydrated, setAnswersHydrated] = useState(!editRequested);
 
   useEffect(() => {
     window.history.replaceState(
@@ -351,19 +388,77 @@ export function OnboardingFlow({
   }, [survey, surveyRequest]);
 
   useEffect(() => {
-    const token = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
-    const completionKey = token ? getOnboardingCompletionKey(token) : null;
-    if (completionKey && localStorage.getItem(completionKey) === "true") {
-      router.replace("/home");
-    }
-  }, [router]);
+    let cancelled = false;
+    const timerId = window.setTimeout(() => {
+      const token = sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
+      if (
+        !token ||
+        !isAccessTokenWellFormed(token) ||
+        isAccessTokenExpired(token)
+      ) {
+        if (token) sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+        if (!cancelled) setEntryState("unauthenticated");
+        return;
+      }
+
+      void getCurrentSurveyResponse(token)
+        .then((response) => {
+          if (cancelled) return;
+          if (response && !editRequested) {
+            router.replace("/home");
+            return;
+          }
+          if (!response && editRequested) {
+            router.replace("/onboarding");
+            return;
+          }
+          setCurrentResponse(response);
+          setEntryState("ready");
+        })
+        .catch((error: unknown) => {
+          if (cancelled) return;
+          setEntryError(
+            error instanceof Error
+              ? error.message
+              : "저장된 취향 정보를 불러오지 못했어요."
+          );
+          setEntryState("error");
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerId);
+    };
+  }, [editRequested, entryRequest, router]);
+
+  useEffect(() => {
+    if (!editRequested || !survey || !currentResponse) return;
+
+    const timerId = window.setTimeout(() => {
+      setAnswers(toAnswerState(survey, currentResponse));
+      setAnswersHydrated(true);
+    }, 0);
+
+    return () => window.clearTimeout(timerId);
+  }, [currentResponse, editRequested, survey]);
 
   const configuredSteps = survey ? getConfiguredSteps(survey) : [];
   const isComplete = stepIndex >= configuredSteps.length;
   const currentStep =
     configuredSteps[Math.min(stepIndex, configuredSteps.length - 1)];
 
-  if (!survey || !currentStep) {
+  const isPreparingEditAnswers =
+    editRequested && Boolean(currentResponse) && !answersHydrated;
+
+  if (
+    !survey ||
+    !currentStep ||
+    entryState !== "ready" ||
+    isPreparingEditAnswers
+  ) {
+    const isUnauthenticated = entryState === "unauthenticated";
+    const hasEntryError = entryState === "error";
     return (
       <main className="flex min-h-dvh items-center justify-center bg-[#e7eae7] px-5 text-[#16211a]">
         <section className="w-full max-w-[420px] rounded-[28px] border border-[#d3e5d8] bg-white p-7 text-center shadow-[0_8px_28px_rgba(52,78,34,0.04)]">
@@ -371,21 +466,41 @@ export function OnboardingFlow({
             <Leaf size={26} />
           </span>
           <h1 className="mt-4 text-[21px] font-black text-[#12592C]">
-            {surveyLoadError
-              ? "취향 질문을 준비하지 못했어요"
-              : "취향 지도를 준비하고 있어요"}
+            {isUnauthenticated
+              ? "로그인이 필요해요"
+              : surveyLoadError || hasEntryError
+                ? "취향 정보를 준비하지 못했어요"
+                : "취향 지도를 준비하고 있어요"}
           </h1>
           <p className="mt-2 text-[13px] leading-relaxed text-[#72877a]">
-            {surveyLoadError || "마을에 맞는 질문을 불러오는 중이에요."}
+            {isUnauthenticated
+              ? "카카오 로그인 후 나만의 마을 취향을 시작할 수 있어요."
+              : surveyLoadError ||
+                entryError ||
+                "저장된 취향과 질문을 확인하고 있어요."}
           </p>
-          {surveyLoadError && (
-            <button
-              type="button"
-              onClick={() => setSurveyRequest((value) => value + 1)}
-              className="mt-6 min-h-[50px] w-full rounded-[16px] bg-[#12592C] text-[14px] font-bold text-white"
+          {isUnauthenticated ? (
+            <Link
+              href="/"
+              className="mt-6 flex min-h-[50px] w-full items-center justify-center rounded-[16px] bg-[#12592C] text-[14px] font-bold text-white"
             >
-              다시 시도하기
-            </button>
+              로그인하러 가기
+            </Link>
+          ) : (
+            (surveyLoadError || hasEntryError) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSurveyRequest((value) => value + 1);
+                  setEntryState("checking");
+                  setEntryError("");
+                  setEntryRequest((value) => value + 1);
+                }}
+                className="mt-6 min-h-[50px] w-full rounded-[16px] bg-[#12592C] text-[14px] font-bold text-white"
+              >
+                다시 시도하기
+              </button>
+            )
           )}
         </section>
       </main>
@@ -419,7 +534,7 @@ export function OnboardingFlow({
         setSaveError("로그인 정보를 찾지 못했어요. 다시 로그인해 주세요.");
         return;
       }
-      if (isAccessTokenExpired(token)) {
+      if (!isAccessTokenWellFormed(token) || isAccessTokenExpired(token)) {
         sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
         setAuthExpired(true);
         setSaveError("로그인 시간이 만료됐어요. 다시 로그인해 주세요.");
@@ -435,15 +550,15 @@ export function OnboardingFlow({
       setIsSaving(true);
       setSaveError("");
       try {
-        await storeSurvey(
-          {
-            surveyId: survey.surveyId,
-            answers: toSurveyAnswers(survey, answers)
-          },
-          token
-        );
-        const completionKey = getOnboardingCompletionKey(token);
-        if (completionKey) localStorage.setItem(completionKey, "true");
+        const payload = {
+          surveyId: survey.surveyId,
+          answers: toSurveyAnswers(survey, answers)
+        };
+        if (currentResponse) {
+          await updateSurveyResponse(currentResponse.id, payload, token);
+        } else {
+          await storeSurvey(payload, token);
+        }
         const nextIndex = configuredSteps.length;
         window.history.pushState(
           { ...window.history.state, maeulOnboardingStep: nextIndex },
@@ -490,7 +605,7 @@ export function OnboardingFlow({
               </button>
             ) : (
               <Link
-                href="/"
+                href={editRequested ? "/my" : "/"}
                 aria-label="시작 화면으로 돌아가기"
                 className="flex size-9 items-center justify-center rounded-full border border-[#dce7df] bg-white/70 text-[#12592C]"
               >
@@ -521,7 +636,16 @@ export function OnboardingFlow({
         </header>
 
         {isComplete ? (
-          <TasteProfile answers={answers} survey={survey} />
+          <TasteProfile
+            answers={answers}
+            survey={survey}
+            completionHref={editRequested ? "/my" : "/home"}
+            completionLabel={
+              editRequested
+                ? "수정한 취향 확인하기"
+                : "내 취향으로 마을 둘러보기"
+            }
+          />
         ) : (
           <section className="flex min-h-0 flex-1 flex-col">
             <div

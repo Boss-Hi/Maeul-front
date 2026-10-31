@@ -20,7 +20,7 @@ export function AuthStartAction({
 
   return isSignedIn ? (
     <Link
-      href="/home"
+      href="/onboarding"
       className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[17px] bg-[#478264] text-[16px] font-black text-white shadow-[0_12px_28px_rgba(42,91,68,0.25)] transition-transform active:scale-[0.98]"
     >
       시작하기

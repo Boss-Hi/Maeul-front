@@ -23,6 +23,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { getMyProfile, type UserProfile } from "@/lib/api/profile";
 import {
+  getCurrentSurveyResponse,
+  getFirstSurvey,
+  type Survey,
+  type SurveyResponse
+} from "@/lib/api/surveys";
+import {
   ACCESS_TOKEN_STORAGE_KEY,
   isAccessTokenExpired
 } from "@/lib/auth/session";
@@ -63,6 +69,12 @@ export default function MyPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [profileLoadError, setProfileLoadError] = useState("");
+  const [tasteSurvey, setTasteSurvey] = useState<Survey | null>(null);
+  const [tasteResponse, setTasteResponse] = useState<
+    SurveyResponse | undefined
+  >(undefined);
+  const [isTasteLoading, setIsTasteLoading] = useState(false);
+  const [tasteLoadError, setTasteLoadError] = useState("");
   const router = useRouter();
   const token = useSyncExternalStore(
     () => () => undefined,
@@ -75,6 +87,23 @@ export default function MyPage() {
     profile?.name?.trim() ||
     (isSignedIn ? "마을 여행자" : "로그인하고 시작해요");
   const profileDescription = profile?.description?.trim();
+  const selectedTasteLabels = (questionId: number) => {
+    const question = tasteSurvey?.questions.find(
+      (item) => item.questionId === questionId
+    );
+    if (!question || !tasteResponse) return [];
+
+    const selectedOptionIds = new Set(
+      tasteResponse.answers
+        .filter((answer) => answer.questionId === questionId)
+        .map((answer) => answer.optionId)
+    );
+    return question.options
+      .filter((option) => selectedOptionIds.has(option.optionId))
+      .map((option) => option.label);
+  };
+  const tasteTags = selectedTasteLabels(4);
+  const tastePurpose = selectedTasteLabels(3)[0];
 
   useEffect(() => {
     if (!token || !isSignedIn) {
@@ -98,6 +127,42 @@ export default function MyPage() {
         })
         .finally(() => {
           if (!controller.signal.aborted) setIsProfileLoading(false);
+        });
+    }, 0);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(requestId);
+    };
+  }, [isSignedIn, token]);
+
+  useEffect(() => {
+    if (!token || !isSignedIn) return;
+
+    const controller = new AbortController();
+    const requestId = window.setTimeout(() => {
+      setIsTasteLoading(true);
+      setTasteLoadError("");
+
+      void Promise.all([
+        getFirstSurvey(controller.signal),
+        getCurrentSurveyResponse(token, controller.signal)
+      ])
+        .then(([nextSurvey, nextResponse]) => {
+          if (controller.signal.aborted) return;
+          setTasteSurvey(nextSurvey);
+          setTasteResponse(nextResponse);
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          setTasteLoadError(
+            error instanceof Error
+              ? error.message
+              : "저장된 취향 정보를 불러오지 못했어요."
+          );
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setIsTasteLoading(false);
         });
     }, 0);
 
@@ -245,26 +310,35 @@ export default function MyPage() {
                     취향
                   </h2>
                   <p className="mt-1.5 text-[12px] text-[#72877a]">
-                    커피와 독서, 느긋한 동네 산책을 좋아해요.
+                    {isTasteLoading
+                      ? "저장한 취향을 불러오는 중이에요."
+                      : tasteLoadError ||
+                        (tasteResponse
+                          ? `${tastePurpose ? `${tastePurpose}을 위해, ` : ""}${tasteTags.length ? `${tasteTags.slice(0, 2).join(" · ")} 같은 순간을 좋아해요.` : "나만의 마을 취향을 담아뒀어요."}`
+                          : "아직 나만의 마을 취향을 정하지 않았어요.")}
                   </p>
                 </div>
                 <Link
-                  href="/onboarding"
+                  href={tasteResponse ? "/onboarding?mode=edit" : "/onboarding"}
                   className="flex shrink-0 items-center gap-0.5 text-[12px] font-bold text-[#579167]"
                 >
-                  수정하기 <ChevronRight size={15} />
+                  {tasteResponse ? "수정하기" : "설정하기"}{" "}
+                  <ChevronRight size={15} />
                 </Link>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {["커피", "독서", "음악/공연", "로컬 맛집", "바다/자연"].map(
-                  (tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-[#eff5ed] px-3 py-2 text-[12px] font-bold text-[#5b7865]"
-                    >
-                      {tag}
-                    </span>
-                  )
+                {tasteTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-[#eff5ed] px-3 py-2 text-[12px] font-bold text-[#5b7865]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {!isTasteLoading && !tasteLoadError && !tasteResponse && (
+                  <span className="rounded-full bg-[#eff5ed] px-3 py-2 text-[12px] font-bold text-[#7a907f]">
+                    취향 산책을 시작해 보세요
+                  </span>
                 )}
               </div>
             </section>

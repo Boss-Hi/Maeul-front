@@ -1,5 +1,9 @@
 export const ACCESS_TOKEN_STORAGE_KEY = "maeul-access-token";
 
+export function isAccessTokenWellFormed(token: string) {
+  return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token);
+}
+
 function getTokenClaims(token: string) {
   try {
     const payload = token.split(".")[1];
@@ -18,6 +22,8 @@ function getTokenClaims(token: string) {
 }
 
 export function isAccessTokenExpired(token: string) {
+  if (!isAccessTokenWellFormed(token)) return true;
+
   const exp = getTokenClaims(token)?.exp;
   return typeof exp === "number" && Date.now() >= exp * 1000;
 }

@@ -52,8 +52,15 @@ const travelTypes: Record<string, { title: string; description: string }> = {
 
 export function TasteProfile({
   answers,
-  survey
-}: Readonly<{ answers: Record<string, string[]>; survey: Survey }>) {
+  survey,
+  completionHref = "/home",
+  completionLabel = "내 취향으로 마을 둘러보기"
+}: Readonly<{
+  answers: Record<string, string[]>;
+  survey: Survey;
+  completionHref?: string;
+  completionLabel?: string;
+}>) {
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
@@ -246,10 +253,10 @@ export function TasteProfile({
           </p>
         </div>
         <Link
-          href="/home"
+          href={completionHref}
           className="mt-5 flex min-h-14 items-center justify-center gap-2 rounded-[17px] bg-[#12592C] px-4 py-3 text-[15px] font-bold text-white shadow-[0_10px_24px_rgba(18,89,44,0.18)]"
         >
-          내 취향으로 마을 둘러보기 <ArrowRight size={18} />
+          {completionLabel} <ArrowRight size={18} />
         </Link>
         <p className="mt-3 text-center text-[11px] text-[#929d93]">
           이전 단계로 돌아가 선택을 바꿀 수 있어요

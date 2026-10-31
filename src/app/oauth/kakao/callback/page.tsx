@@ -4,7 +4,10 @@ import { AlertCircle, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
-import { ACCESS_TOKEN_STORAGE_KEY } from "@/lib/auth/session";
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  isAccessTokenWellFormed
+} from "@/lib/auth/session";
 
 export default function KakaoCallbackPage() {
   const router = useRouter();
@@ -16,7 +19,7 @@ export default function KakaoCallbackPage() {
   const token = isClient
     ? new URLSearchParams(window.location.search).get("token")
     : null;
-  const hasValidToken = Boolean(token && token.split(".").length === 3);
+  const hasValidToken = Boolean(token && isAccessTokenWellFormed(token));
 
   useEffect(() => {
     if (!hasValidToken || !token) return;
@@ -54,7 +57,7 @@ export default function KakaoCallbackPage() {
             </span>
             <h1 className="mt-4 text-[22px] font-black">로그인하는 중이에요</h1>
             <p className="mt-2 text-[13px] leading-relaxed text-[#72877a]">
-              나만의 마을 취향을 준비하고 있어요.
+              저장된 취향을 확인하고 있어요.
             </p>
           </>
         )}

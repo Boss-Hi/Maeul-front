@@ -3,7 +3,17 @@ import { getInitialSurvey } from "@/lib/api/surveys-server";
 
 export const dynamic = "force-dynamic";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  const { mode } = await searchParams;
   const initialSurvey = await getInitialSurvey();
-  return <OnboardingFlow initialSurvey={initialSurvey} />;
+  return (
+    <OnboardingFlow
+      initialSurvey={initialSurvey}
+      editRequested={mode === "edit"}
+    />
+  );
 }
