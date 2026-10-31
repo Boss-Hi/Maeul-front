@@ -10,6 +10,7 @@ import {
   Sparkles
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getFestival } from "@/lib/api/festivals";
 
@@ -21,6 +22,23 @@ export function EventDetail({ contentId }: { contentId: string }) {
     enabled: validContentId
   });
   const event = query.data;
+  useEffect(() => {
+    if (!event?.id) return;
+    try {
+      const raw: unknown = JSON.parse(
+        localStorage.getItem("maeul-recent-events") || "[]"
+      );
+      const ids = Array.isArray(raw)
+        ? raw.filter((id) => typeof id === "string" && id !== event.id)
+        : [];
+      localStorage.setItem(
+        "maeul-recent-events",
+        JSON.stringify([event.id, ...ids].slice(0, 6))
+      );
+    } catch {
+      /* History must not block event details. */
+    }
+  }, [event?.id]);
   if (!event)
     return (
       <main className="mx-auto flex h-dvh max-w-[1080px] flex-col bg-[#f8fbf6] p-5 text-[#315f50] shadow-[0_0_60px_rgba(49,95,80,0.07)]">

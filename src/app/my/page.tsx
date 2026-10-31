@@ -1,18 +1,16 @@
 "use client";
+import { BottomNav } from "@/components/bottom-nav";
 
 import {
   ArrowLeft,
   BadgeCheck,
-  CalendarDays,
   ChevronRight,
   CircleUserRound,
   Coffee,
   Leaf,
   LogOut,
   MapPin,
-  Search,
   Sprout,
-  Star,
   Tag,
   Trophy,
   UsersRound,
@@ -55,13 +53,6 @@ const mates = [
     meta: "강릉 5일 살기 · 취향이 잘 맞아요",
     tag: "가까운 친구"
   }
-];
-
-const tabs = [
-  { label: "탐색", Icon: Search, href: "/home", active: false },
-  { label: "마이로컬", Icon: CalendarDays, href: "/plan", active: false },
-  { label: "미션", Icon: Star, href: "/mission", active: false },
-  { label: "MY", Icon: CircleUserRound, href: "/my", active: true }
 ];
 
 export default function MyPage() {
@@ -185,13 +176,17 @@ export default function MyPage() {
           <header className="relative min-h-[250px] overflow-hidden bg-[#c7e9ef] bg-[url('/images/profile-hero-v2.png')] bg-cover bg-center px-5 pt-7">
             <div className="absolute inset-0 bg-[#f7fbf62b]" />
             <div className="relative flex items-center justify-between">
-              <Link
-                href="/home"
-                aria-label="탐색으로 돌아가기"
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.history.length > 1) router.back();
+                  else router.replace("/main");
+                }}
+                aria-label="뒤로가기"
                 className="flex size-10 items-center justify-center rounded-full border border-white/85 bg-[#fffefbeb] text-[#315f50]"
               >
                 <ArrowLeft size={20} />
-              </Link>
+              </button>
               {isSignedIn ? (
                 <button
                   type="button"
@@ -415,25 +410,7 @@ export default function MyPage() {
           </div>
         </section>
 
-        <nav className="grid h-[74px] shrink-0 grid-cols-4 border-t border-[#dce7d8] bg-[#fffefbf2] px-3 backdrop-blur-sm">
-          {tabs.map(({ label, Icon, href, active }) => (
-            <Link
-              key={label}
-              href={href}
-              className="flex flex-col items-center justify-center gap-1.5"
-            >
-              <Icon
-                size={21}
-                className={active ? "text-[#397757]" : "text-[#a3aaa4]"}
-              />
-              <span
-                className={`text-[11px] ${active ? "font-bold text-[#397757]" : "font-medium text-[#98a19a]"}`}
-              >
-                {label}
-              </span>
-            </Link>
-          ))}
-        </nav>
+        <BottomNav />
         {matePreviewOpen && (
           <MatePreviewModal onClose={() => setMatePreviewOpen(false)} />
         )}

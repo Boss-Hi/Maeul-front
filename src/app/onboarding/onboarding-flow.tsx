@@ -405,7 +405,7 @@ export function OnboardingFlow({
         .then((response) => {
           if (cancelled) return;
           if (response && !editRequested) {
-            router.replace("/home");
+            router.replace("/main");
             return;
           }
           if (!response && editRequested) {
@@ -639,7 +639,7 @@ export function OnboardingFlow({
           <TasteProfile
             answers={answers}
             survey={survey}
-            completionHref={editRequested ? "/my" : "/home"}
+            completionHref={editRequested ? "/my" : "/main"}
             completionLabel={
               editRequested
                 ? "수정한 취향 확인하기"

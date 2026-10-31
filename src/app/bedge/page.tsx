@@ -1,12 +1,11 @@
+import { BottomNav } from "@/components/bottom-nav";
 import {
   ArrowLeft,
   BadgeCheck,
   Bike,
   BookOpenText,
-  CalendarDays,
   Camera,
   ClipboardCheck,
-  CircleUserRound,
   Coffee,
   Footprints,
   Handshake,
@@ -14,7 +13,6 @@ import {
   Mountain,
   Music2,
   Palette,
-  Search,
   Sparkles,
   Star,
   Store,
@@ -241,13 +239,6 @@ const badges: BadgeItem[] = [
   }
 ];
 
-const tabs = [
-  { label: "탐색", Icon: Search, href: "/home", active: false },
-  { label: "마이로컬", Icon: CalendarDays, href: "/plan", active: false },
-  { label: "미션", Icon: Star, href: "/mission", active: true },
-  { label: "MY", Icon: CircleUserRound, href: "/my", active: false }
-];
-
 export default function BedgePage() {
   const earnedCount = badges.filter((badge) => badge.earned).length;
   const remainingCount = badges.length - earnedCount;
@@ -353,29 +344,7 @@ export default function BedgePage() {
           </div>
         </section>
 
-        <nav className="grid h-[72px] shrink-0 grid-cols-4 border-t border-black/6 bg-white px-3">
-          {tabs.map(({ label, Icon, href, active }) => (
-            <Link
-              key={label}
-              href={href}
-              className="flex flex-col items-center justify-center gap-1.5"
-            >
-              <Icon
-                size={20}
-                className={active ? "text-[#1E7F3C]" : "text-[#98a19a]"}
-              />
-              <span
-                className={`text-[11px] ${
-                  active
-                    ? "font-bold text-[#12592C]"
-                    : "font-medium text-[#98a19a]"
-                }`}
-              >
-                {label}
-              </span>
-            </Link>
-          ))}
-        </nav>
+        <BottomNav />
       </div>
     </main>
   );

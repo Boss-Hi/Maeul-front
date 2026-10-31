@@ -14,6 +14,7 @@ export function MaeulLogo({
     >
       <Image
         src="/images/maeul-logo-mark.png"
+        unoptimized
         alt=""
         width={size}
         height={size}

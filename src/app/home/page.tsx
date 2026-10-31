@@ -1,4 +1,5 @@
 "use client";
+import { BottomNav } from "@/components/bottom-nav";
 
 import {
   CalendarDays,
@@ -16,7 +17,6 @@ import {
   MapPin,
   Search,
   Sparkles,
-  Star,
   Trees
 } from "lucide-react";
 import Link from "next/link";
@@ -66,13 +66,6 @@ const categoryHeadingCopy: Record<
     national: "마을의 감각을 만나는 시간 어때요?"
   }
 };
-
-const tabs = [
-  { label: "탐색", Icon: Search, active: true },
-  { label: "마이로컬", Icon: CalendarDays, active: false },
-  { label: "미션", Icon: Star, active: false },
-  { label: "MY", Icon: CircleUserRound, active: false }
-];
 
 const desktopQuery = "(min-width: 1024px)";
 function subscribeViewport(onChange: () => void) {
@@ -207,7 +200,9 @@ function HomeContent() {
       regions.data.find((region) => region.code === regionQuery) ??
       (regionQuery === "gangwon"
         ? regions.data.find((region) => region.name.includes("강원"))
-        : undefined);
+        : regionQuery === "busan"
+          ? regions.data.find((region) => region.name.includes("부산"))
+          : undefined);
     if (!targetRegion) return;
 
     const targetSigungu = cityQuery
@@ -779,38 +774,7 @@ function HomeContent() {
           )}
         </section>
 
-        <nav aria-label="메인 메뉴" className={styles.bottomNav}>
-          {tabs.map(({ label, Icon, active }) => (
-            <Link
-              href={
-                label === "마이로컬"
-                  ? "/plan"
-                  : label === "미션"
-                    ? "/mission"
-                    : label === "MY"
-                      ? "/my"
-                      : "/home"
-              }
-              key={label}
-              aria-current={active ? "page" : undefined}
-              className="flex flex-col items-center justify-center gap-1.5"
-            >
-              <Icon
-                size={20}
-                className={active ? "text-[#1E7F3C]" : "text-[#98a19a]"}
-              />
-              <span
-                className={`text-[11px] ${
-                  active
-                    ? "font-bold text-[#12592C]"
-                    : "font-medium text-[#98a19a]"
-                }`}
-              >
-                {label}
-              </span>
-            </Link>
-          ))}
-        </nav>
+        <BottomNav />
       </div>
     </main>
   );

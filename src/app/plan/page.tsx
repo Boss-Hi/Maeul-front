@@ -5,27 +5,41 @@ import {
   BookOpenText,
   BriefcaseBusiness,
   Car,
-  CalendarDays,
-  CircleUserRound,
   Coffee,
-  Home,
   House,
   Leaf,
   MapPin,
   Navigation,
   PartyPopper,
-  Search,
-  Star,
   X,
   Trees
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import styles from "./plan.module.css";
+import { useSearchParams } from "next/navigation";
+import PlanList from "./plan-list";
+import { BottomNav } from "@/components/bottom-nav";
+import ScheduleEditor from "./schedule-editor";
+import {
+  getCurrentItinerary,
+  getItinerary,
+  getItineraryDay,
+  ItineraryError,
+  type Itinerary
+} from "@/lib/api/itinerary";
 
-type Day = 1 | 2 | 3;
+type Day = number;
 type Spot = {
+  hasLocation: boolean;
   time: string;
   title: string;
   meta: string;
@@ -33,125 +47,15 @@ type Spot = {
   color: string;
   position: [number, number];
 };
-const tabs = [
-  { label: "탐색", Icon: Search, href: "/home" },
-  { label: "마이로컬", Icon: CalendarDays, href: "/plan", active: true },
-  { label: "미션", Icon: Star, href: "/mission" },
-  { label: "MY", Icon: CircleUserRound, href: "/my" }
-];
-const plans: Record<Day, { center: [number, number]; spots: Spot[] }> = {
-  1: {
-    center: [37.776, 128.93],
-    spots: [
-      {
-        time: "09:30",
-        title: "경포 파도소리 오피스",
-        meta: "오전 집중 업무 · 지자체 협업 참석",
-        tag: "업무",
-        color: "#4c9872",
-        position: [37.795, 128.91]
-      },
-      {
-        time: "14:00",
-        title: "안목 커피거리",
-        meta: "로스터리 산책 · 커피 미션 가능",
-        tag: "산책",
-        color: "#4d9b68",
-        position: [37.7714, 128.9488]
-      },
-      {
-        time: "17:00",
-        title: "커피 페스타 메인 무대",
-        meta: "핸드드립 체험과 야간 버스킹",
-        tag: "행사",
-        color: "#e9aa2c",
-        position: [37.7724, 128.9471]
-      },
-      {
-        time: "21:30",
-        title: "웨이브 코리빙 하우스",
-        meta: "행사장 도보권 · 라운지 이용",
-        tag: "숙소",
-        color: "#e77c4d",
-        position: [37.7688, 128.936]
-      }
-    ]
-  },
-  2: {
-    center: [37.785, 128.924],
-    spots: [
-      {
-        time: "10:00",
-        title: "파도책방 안목점",
-        meta: "바다뷰 독립서점 · 30분 독서",
-        tag: "미션",
-        color: "#4d9b68",
-        position: [37.7734, 128.9465]
-      },
-      {
-        time: "13:00",
-        title: "초당 순두부 거리",
-        meta: "점심과 짧은 동네 산책",
-        tag: "식사",
-        color: "#d47a32",
-        position: [37.7914, 128.9143]
-      },
-      {
-        time: "15:00",
-        title: "경포 워케이션 카페",
-        meta: "2시간 작업 · 콘센트 좌석",
-        tag: "업무",
-        color: "#4c9872",
-        position: [37.7963, 128.9068]
-      },
-      {
-        time: "18:00",
-        title: "안목 로스터리 테이스팅",
-        meta: "핸드드립 3종 비교 시음",
-        tag: "체험",
-        color: "#a87528",
-        position: [37.7718, 128.9496]
-      }
-    ]
-  },
-  3: {
-    center: [37.765, 128.916],
-    spots: [
-      {
-        time: "09:30",
-        title: "코워킹 마무리",
-        meta: "체크아웃 정리 · 짐 보관",
-        tag: "업무",
-        color: "#4c9872",
-        position: [37.795, 128.91]
-      },
-      {
-        time: "11:00",
-        title: "책방 인증 마무리",
-        meta: "한 줄 감상 기록과 미션 리포트",
-        tag: "미션",
-        color: "#4d9b68",
-        position: [37.7734, 128.9465]
-      },
-      {
-        time: "12:30",
-        title: "교동 로컬 점심",
-        meta: "기차 전 여유 식사",
-        tag: "식사",
-        color: "#d47a32",
-        position: [37.7628, 128.8995]
-      },
-      {
-        time: "17:00",
-        title: "강릉역 이동",
-        meta: "KTX 탑승 전 카페 대기",
-        tag: "이동",
-        color: "#697e8a",
-        position: [37.7641, 128.8995]
-      }
-    ]
-  }
-};
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        char
+      ]!
+  );
+}
 function SpotIcon({ tag }: { tag: string }) {
   const Icon =
     tag === "업무"
@@ -170,36 +74,224 @@ function SpotIcon({ tag }: { tag: string }) {
   return <Icon size={21} />;
 }
 
-export default function PlanPage() {
-  const [day, setDay] = useState<Day>(1);
+export default function PlanRoute() {
+  return (
+    <Suspense fallback={<p>일정을 불러오고 있어요.</p>}>
+      <PlanRouter />
+    </Suspense>
+  );
+}
+function PlanRouter() {
+  const params = useSearchParams();
+  const id = params.get("itineraryId");
+  return id === null ? <PlanList /> : <PlanPage key={id} />;
+}
+function PlanPage() {
+  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [loginRequired, setLoginRequired] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    const id = new URLSearchParams(window.location.search).get("itineraryId");
+    (async () => {
+      setLoading(true);
+      setError("");
+      setLoginRequired(false);
+      try {
+        const data =
+          id === null
+            ? await getCurrentItinerary(controller.signal)
+            : await getItinerary(Number(id), controller.signal);
+        if (!controller.signal.aborted) setItinerary(data);
+      } catch (cause) {
+        if (!controller.signal.aborted) {
+          setError(
+            cause instanceof ItineraryError
+              ? cause.message
+              : "일정 정보를 확인하지 못했어요."
+          );
+          setLoginRequired(
+            cause instanceof ItineraryError && cause.status === 401
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [attempt]);
+  if (loading || error || !itinerary || !itinerary.days.length)
+    return (
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-5 bg-[#f5f8f5] px-6 text-center text-[#285b4c]">
+        <h1 className="text-2xl font-bold">마이로컬</h1>
+        <p role="status">
+          {loading
+            ? "일정을 불러오고 있어요."
+            : error || "아직 진행 중이거나 예정된 일정이 없어요."}
+        </p>
+        {!loading && error && !loginRequired && (
+          <button
+            className="rounded-lg border p-3"
+            onClick={() => setAttempt((value) => value + 1)}
+          >
+            다시 시도
+          </button>
+        )}
+        {!loading && (
+          <Link
+            href={loginRequired ? "/" : "/home"}
+            className="rounded-lg bg-[#478264] px-5 py-3 text-white"
+          >
+            {loginRequired ? "로그인하기" : "마을 둘러보기"}
+          </Link>
+        )}
+      </main>
+    );
+  return <PlanDetail key={itinerary.id} itinerary={itinerary} />;
+}
+
+function PlanDetail({ itinerary: initial }: { itinerary: Itinerary }) {
+  const [itinerary, setItinerary] = useState(initial);
+  const [dayLoading, setDayLoading] = useState(true);
+  const [dayError, setDayError] = useState("");
+  const [dayAttempt, setDayAttempt] = useState(0);
+  const plans = useMemo(
+    () =>
+      Object.fromEntries(
+        itinerary.days.map((entry) => {
+          const spots: Spot[] = [...entry.schedules]
+            .sort((a, b) => a.sequence - b.sequence)
+            .map((schedule) => {
+              const lat = schedule.tour?.mapY;
+              const lng = schedule.tour?.mapX;
+              const hasLocation =
+                typeof lat === "number" &&
+                typeof lng === "number" &&
+                Math.abs(lat) <= 90 &&
+                Math.abs(lng) <= 180 &&
+                (lat !== 0 || lng !== 0);
+              return {
+                title:
+                  schedule.title || schedule.tour?.title || "이름 없는 장소",
+                time:
+                  schedule.startTime?.slice(0, 5) || String(schedule.sequence),
+                meta:
+                  schedule.description ||
+                  schedule.tour?.addr1 ||
+                  "상세 정보 미등록",
+                tag: "방문",
+                color: "#4c9872",
+                hasLocation,
+                position: hasLocation
+                  ? ([lat, lng] as [number, number])
+                  : ([0, 0] as [number, number])
+              };
+            });
+          return [
+            entry.dayNumber,
+            {
+              spots,
+              center:
+                spots.find((spot) => spot.hasLocation)?.position ||
+                ([36, 127] as [number, number])
+            }
+          ];
+        })
+      ),
+    [itinerary]
+  );
+
+  const [day, setDay] = useState<Day>(itinerary.days[0].dayNumber);
   const [selected, setSelected] = useState(0);
   const [focusMap, setFocusMap] = useState(false);
   const [routeSpot, setRouteSpot] = useState<Spot | null>(null);
   const plan = plans[day];
-  const main = plan.spots.find((spot) => spot.tag === "행사") ?? plan.spots[0];
+  const activeDay = itinerary.days.find((entry) => entry.dayNumber === day)!;
+  const refreshDay = useCallback(
+    async (signal?: AbortSignal) => {
+      const updated = await getItineraryDay(initial.id, activeDay.id, signal);
+      if (signal?.aborted) return;
+      setItinerary((previous) => ({
+        ...previous,
+        days: previous.days.map((entry) =>
+          entry.id === updated.id ? updated : entry
+        )
+      }));
+      setRouteSpot(null);
+      setFocusMap(false);
+      setSelected(0);
+    },
+    [initial.id, activeDay.id]
+  );
+  useEffect(() => {
+    const controller = new AbortController();
+    setDayLoading(true);
+    setDayError("");
+    refreshDay(controller.signal)
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setDayError(
+            "최신 일정을 불러오지 못했어요. 이전 조회 내용을 표시하고 있어요."
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setDayLoading(false);
+      });
+    return () => controller.abort();
+  }, [refreshDay, dayAttempt]);
+
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
         <section className={styles.scroll}>
-          <header className={styles.hero}>
+          <header
+            className={styles.hero}
+            style={{
+              backgroundImage: itinerary.tour.firstImage
+                ? `url("${itinerary.tour.firstImage.replaceAll('"', "%22")}")`
+                : "none"
+            }}
+          >
             <Link
-              href="/home"
-              aria-label="탐색으로 돌아가기"
+              href="/plan"
+              aria-label="내 일정으로 돌아가기"
               className={styles.back}
             >
               <ArrowLeft size={20} />
             </Link>
-            <div className={styles.heroCopy}>
-              <p>마이 로컬 플랜</p>
-              <h1>강릉 3일 살기 · 커피 페스타</h1>
-            </div>
           </header>
           <div className={styles.body}>
-            <nav className={styles.days} aria-label="일차 선택">
-              {([1, 2, 3] as Day[]).map((item) => (
+            <div className={styles.heroCopy}>
+              <p>마이 로컬 플랜</p>
+              <h1>{itinerary.tour.title}</h1>
+              <p>
+                {itinerary.startDate} ~ {itinerary.endDate}
+              </p>
+            </div>
+
+            {itinerary.days.some(
+              (entry) =>
+                entry.date < itinerary.startDate ||
+                entry.date > itinerary.endDate
+            ) && (
+              <p role="status" className={styles.notice}>
+                일부 일정이 선택한 체류 기간을 벗어나 있어요.
+              </p>
+            )}
+            <nav
+              className={styles.days}
+              style={{ display: "flex", overflowX: "auto" }}
+              aria-label="일차 선택"
+            >
+              {itinerary.days.map(({ dayNumber: item }) => (
                 <button
                   key={item}
+                  style={{ flex: "1 0 90px" }}
                   onClick={() => {
+                    if (day === item) return;
+                    setDayLoading(true);
                     setDay(item);
                     setSelected(0);
                     setFocusMap(false);
@@ -211,6 +303,22 @@ export default function PlanPage() {
                 </button>
               ))}
             </nav>
+            {dayLoading && (
+              <p role="status" className={styles.notice}>
+                선택한 날의 일정을 확인하고 있어요.
+              </p>
+            )}
+            {dayError && (
+              <div className={styles.notice} role="alert">
+                {dayError}
+                <button
+                  className="ml-3 underline"
+                  onClick={() => setDayAttempt((value) => value + 1)}
+                >
+                  다시 조회
+                </button>
+              </div>
+            )}
             <MapView
               day={day}
               center={plan.center}
@@ -220,29 +328,26 @@ export default function PlanPage() {
               onFocusHandled={() => setFocusMap(false)}
               onDirectionsOpen={setRouteSpot}
             />
-            <Link href="/mission" className={styles.mission}>
-              <span>
-                <BookOpenText size={27} />
-              </span>
-              <div>
-                <p>
-                  <Leaf size={15} /> 진행 중 미션
-                </p>
-                <h2>바다책방 독서광</h2>
-                <small>로컬 서점 2곳에서 30분 독서 인증</small>
-              </div>
-              <strong>2/3 완료</strong>
-            </Link>
             <div className={styles.sectionTitle}>
               <h2>
-                <Leaf size={21} /> 오늘의 핵심 일정
+                <Leaf size={21} /> 선택한 날의 일정
               </h2>
               <span>{plan.spots.length}곳</span>
+              <ScheduleEditor
+                key={activeDay.id}
+                itineraryId={itinerary.id}
+                day={activeDay}
+                onRefresh={refreshDay}
+                disabled={dayLoading || !!dayError}
+              />
             </div>
+            {!plan.spots.length && (
+              <p className={styles.notice}>아직 담긴 일정이 없어요.</p>
+            )}
             <div className={styles.list}>
               {plan.spots.map((spot, index) => (
                 <div
-                  key={`${spot.time}-${spot.title}`}
+                  key={`${spot.time}-${escapeHtml(spot.title)}`}
                   className={selected === index ? styles.selected : ""}
                 >
                   <button
@@ -276,6 +381,8 @@ export default function PlanPage() {
                   </button>
                   <button
                     type="button"
+                    disabled={!spot.hasLocation}
+                    title={spot.hasLocation ? "길찾기" : "위치 정보가 없어요"}
                     onClick={() => setRouteSpot(spot)}
                     className={styles.directions}
                     aria-label={`${spot.title} 길찾기`}
@@ -285,34 +392,9 @@ export default function PlanPage() {
                 </div>
               ))}
             </div>
-            <section className={styles.stay}>
-              <div>
-                <p>
-                  <Home size={17} /> 숙소
-                </p>
-                <h2>웨이브 코리빙 하우스 강릉</h2>
-                <small>{main.title} 기준 이동 편한 위치</small>
-              </div>
-              <button>변경</button>
-            </section>
-            <p className={styles.notice}>
-              <Leaf size={16} /> 주요 행사는 플랜 기준점으로 고정되고, 주변
-              일정과 숙소는 대체할 수 있어요.
-            </p>
           </div>
         </section>
-        <nav className={styles.bottom}>
-          {tabs.map(({ label, Icon, href, active }) => (
-            <Link
-              key={label}
-              href={href}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon size={21} />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
+        <BottomNav />
         {routeSpot && (
           <DirectionsModal
             spot={routeSpot}
@@ -392,7 +474,7 @@ function DirectionsModal({
         {src ? (
           <iframe
             className={styles.googleMap}
-            title={`${spot.title} 길찾기`}
+            title={`${escapeHtml(spot.title)} 길찾기`}
             src={src}
             allow="geolocation"
             referrerPolicy="strict-origin-when-cross-origin"
@@ -436,8 +518,11 @@ function MapView({
 }) {
   const element = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
-  const markers = useRef<LeafletMarker[]>([]);
-  const route = useMemo(() => spots.map((spot) => spot.position), [spots]);
+  const markers = useRef<(LeafletMarker | null)[]>([]);
+  const route = useMemo(
+    () => spots.filter((spot) => spot.hasLocation).map((spot) => spot.position),
+    [spots]
+  );
   useEffect(() => {
     let cancelled = false;
     async function draw() {
@@ -460,6 +545,7 @@ function MapView({
         weight: 4
       }).addTo(current);
       markers.current = spots.map((spot, index) => {
+        if (!spot.hasLocation) return null;
         const size = 32;
         const icon = L.divIcon({
           className: "",
@@ -474,7 +560,7 @@ function MapView({
         })
           .addTo(current)
           .bindPopup(
-            `<div style="display:flex;min-width:190px;gap:10px"><div style="min-width:0;flex:1;padding-right:4px"><b>${spot.time} ${spot.title}</b><span style="display:block;margin-top:4px;color:#66756c;font-size:12px;line-height:1.45">${spot.meta}</span></div><button type="button" class="maeul-map-directions" aria-label="${spot.title} 길찾기" title="길찾기" style="align-self:flex-end;display:flex;width:34px;height:34px;align-items:center;justify-content:center;border:0;border-radius:50%;background:#edf7ed;color:#397b55;cursor:pointer"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 19-8-8 19-2-8-9-3Z"/></svg></button></div>`,
+            `<div style="display:flex;min-width:190px;gap:10px"><div style="min-width:0;flex:1;padding-right:4px"><b>${spot.time} ${escapeHtml(spot.title)}</b><span style="display:block;margin-top:4px;color:#66756c;font-size:12px;line-height:1.45">${escapeHtml(spot.meta)}</span></div><button type="button" class="maeul-map-directions" aria-label="${escapeHtml(spot.title)} 길찾기" title="길찾기" style="align-self:flex-end;display:flex;width:34px;height:34px;align-items:center;justify-content:center;border:0;border-radius:50%;background:#edf7ed;color:#397b55;cursor:pointer"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 19-8-8 19-2-8-9-3Z"/></svg></button></div>`,
             { autoPan: false }
           );
         marker.on("popupopen", (event) => {
@@ -500,7 +586,8 @@ function MapView({
         });
         return marker;
       });
-      current.fitBounds(route, { maxZoom: 14, padding: [26, 26] });
+      if (route.length)
+        current.fitBounds(route, { maxZoom: 14, padding: [26, 26] });
       map.current = current;
     }
     draw();
@@ -512,7 +599,7 @@ function MapView({
   }, [center, day, onDirectionsOpen, route, spots]);
   useEffect(() => {
     const spot = spots[selected];
-    if (focusMap && spot && map.current) {
+    if (focusMap && spot?.hasLocation && map.current) {
       map.current.flyTo(spot.position, map.current.getZoom(), {
         duration: 0.55
       });
@@ -526,7 +613,7 @@ function MapView({
         <h2>
           <MapPin size={22} /> 인터랙티브 지도
         </h2>
-        <p>이동, 위치, 미션 확인 가능</p>
+        <p>방문할 장소</p>
       </div>
       <span>Day {day}</span>
       <div ref={element} className={styles.map} />
