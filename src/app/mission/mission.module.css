@@ -80,14 +80,48 @@
   position: relative;
   margin-top: -30px;
   border-radius: 30px 30px 0 0;
-  padding: 12px 16px 0;
+  padding: 12px 16px 32px;
   background: #f9fbf6;
   border-top: 5px solid #fffefb;
 }
 .primaryColumn,
 .secondaryColumn,
 .collection {
-  display: contents;
+  display: block;
+  min-width: 0;
+}
+.matchingPreview {
+  margin-top: 24px;
+  padding: 20px 0;
+  border-top: 1px solid #dce5d7;
+  border-bottom: 1px solid #dce5d7;
+}
+.collection {
+  margin-top: 24px;
+}
+.recordActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 20px;
+}
+.recordActions button,
+.recordActions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #478264;
+}
+.recordActions button {
+  padding: 10px 14px;
+  border: 1px solid #dce7d8;
+  border-radius: 8px;
+  background: white;
 }
 .progress {
   padding: 17px;
@@ -285,6 +319,11 @@
   align-items: start;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+.matesHeader > div {
+  flex: 1 1 200px;
+  min-width: 0;
 }
 .matesHeader p {
   margin-top: 5px;
@@ -301,6 +340,7 @@
   color: #397757;
   font-size: 10px;
   font-weight: 800;
+  min-height: 44px;
 }
 .mateGrid {
   display: grid;
@@ -375,7 +415,7 @@
   font-weight: 700;
 }
 .collectionTitle {
-  margin-top: 24px;
+  margin-top: 0;
   color: #315f50;
   font-size: 18px;
   font-weight: 800;
@@ -699,6 +739,15 @@
   }
   .body {
     padding-inline: 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+    align-items: start;
+    gap: 28px;
+  }
+  .collection {
+    margin-top: 0;
+    padding: 20px 0 20px 24px;
+    border-left: 1px solid #dce5d7;
   }
   .coastFooter {
     margin-inline: -28px;

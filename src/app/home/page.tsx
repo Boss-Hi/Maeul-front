@@ -15,6 +15,7 @@ import {
   ChevronUp,
   CircleUserRound,
   MapPin,
+  LocateFixed,
   Search,
   Sparkles,
   Trees
@@ -41,6 +42,7 @@ import {
   getPopularFestivals
 } from "@/lib/api/festivals";
 import { getRegions } from "@/lib/api/regions";
+import { NearbyLocation } from "@/components/nearby-location";
 import { MaeulLogo } from "@/components/maeul-logo";
 
 const categoryIcons = { EV: PartyPopper, EX: Camera, HS: Landmark, VE: Trees };
@@ -94,6 +96,7 @@ function HomeLoading() {
 
 function HomeContent() {
   const router = useRouter();
+  const [locationOpenRequest, setLocationOpenRequest] = useState(0);
   const searchParams = useSearchParams();
   const searchQuery = searchParams.toString();
   const regionQuery = searchParams.get("region") ?? "";
@@ -116,9 +119,13 @@ function HomeContent() {
   const [region1depth, setRegion1depth] = useState("");
   const [region2depth, setRegion2depth] = useState("");
   const isRegionExplore = Boolean(
-    regionQuery || cityQuery || region1depth || region2depth
+    (regionQuery && regionQuery !== "all") ||
+    cityQuery ||
+    region1depth ||
+    region2depth
   );
-  const isResolvingRegionFilter = Boolean(regionQuery) && !region1depth;
+  const isResolvingRegionFilter =
+    Boolean(regionQuery) && regionQuery !== "all" && !region1depth;
   const festivals = useInfiniteQuery({
     queryKey: [
       "festivals-infinite",
@@ -284,7 +291,7 @@ function HomeContent() {
   function setRegionQuery(regionCode = "", sigunguCode = "") {
     const params = new URLSearchParams(searchParams.toString());
     if (regionCode) params.set("region", regionCode);
-    else params.delete("region");
+    else params.set("region", "all");
     if (sigunguCode) params.set("city", sigunguCode);
     else params.delete("city");
     const query = params.toString();
@@ -344,10 +351,24 @@ function HomeContent() {
                 className={styles.regionToggle}
               >
                 <MapPin size={15} />
-                <span>{regionLabel}</span>
+                <span title={regionLabel}>
+                  {selectedSigungu?.name || selectedRegion?.name || "전국"}
+                </span>
                 <ChevronDown size={14} />
               </button>
             </div>
+            <NearbyLocation
+              hideTrigger
+              openRequest={locationOpenRequest}
+              restore={!regionQuery && !cityQuery}
+              onRegion={(result) => {
+                setRegionsOpen(false);
+                setRegion1depth(result.regionCode);
+                setRegion2depth(result.cityCode);
+                resetForRegionChange();
+                setRegionQuery(result.regionCode, result.cityCode);
+              }}
+            />
             {regionsOpen && (
               <div id="region-picker" className={styles.regionPicker}>
                 <div className={styles.regionPickerHeader}>
@@ -373,6 +394,16 @@ function HomeContent() {
                     전국 보기
                   </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegionsOpen(false);
+                    setLocationOpenRequest((value) => value + 1);
+                  }}
+                  className="my-2 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[#478264]"
+                >
+                  <LocateFixed size={17} /> 현재 위치로 찾기
+                </button>
                 {regions.isPending && (
                   <p className="py-5 text-center text-xs text-[#738378]">
                     지역을 불러오는 중이에요.

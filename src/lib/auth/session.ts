@@ -25,7 +25,9 @@ export function isAccessTokenExpired(token: string) {
   if (!isAccessTokenWellFormed(token)) return true;
 
   const exp = getTokenClaims(token)?.exp;
-  return typeof exp === "number" && Date.now() >= exp * 1000;
+  return (
+    typeof exp !== "number" || !Number.isFinite(exp) || Date.now() >= exp * 1000
+  );
 }
 
 export function getOnboardingCompletionKey(token: string) {

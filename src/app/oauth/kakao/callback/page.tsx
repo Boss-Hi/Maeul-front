@@ -3,7 +3,8 @@
 import { AlertCircle, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { LOGIN_RETURN_KEY, safeReturnPath } from "@/lib/auth/return-path";
 import {
   ACCESS_TOKEN_STORAGE_KEY,
   isAccessTokenWellFormed
@@ -11,6 +12,7 @@ import {
 
 export default function KakaoCallbackPage() {
   const router = useRouter();
+  const handled = useRef(false);
   const isClient = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -22,11 +24,14 @@ export default function KakaoCallbackPage() {
   const hasValidToken = Boolean(token && isAccessTokenWellFormed(token));
 
   useEffect(() => {
-    if (!hasValidToken || !token) return;
+    if (!hasValidToken || !token || handled.current) return;
+    handled.current = true;
 
     sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
     window.history.replaceState({}, "", "/oauth/kakao/callback");
-    router.replace("/onboarding");
+    const next = safeReturnPath(sessionStorage.getItem(LOGIN_RETURN_KEY));
+    sessionStorage.removeItem(LOGIN_RETURN_KEY);
+    router.replace(`/onboarding?next=${encodeURIComponent(next)}`);
   }, [hasValidToken, router, token]);
 
   return (

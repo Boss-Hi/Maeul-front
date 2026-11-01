@@ -35,10 +35,18 @@
   border-radius: 50%;
   background: #ffffffb3;
 }
-.greeting {
-  margin: 14px 0 28px;
+.welcomeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 26px 0 30px;
 }
-.greeting p {
+.greeting {
+  min-width: 0;
+  flex: 1;
+}
+.greeting > p {
   font-size: 12px;
   color: #8a938c;
 }
@@ -46,6 +54,55 @@
   font-size: 19px;
   font-weight: 800;
   overflow-wrap: anywhere;
+  margin-top: 3px;
+}
+.locationActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 55%;
+  min-width: 0;
+  margin-left: auto;
+}
+.locationRefresh {
+  min-width: 36px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #478264;
+}
+.locationRefresh:hover {
+  color: #315f50;
+}
+.locationExplore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 0;
+  color: #315f50;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: right;
+}
+.locationExplore span {
+  overflow-wrap: anywhere;
+}
+.locationExplore svg {
+  flex-shrink: 0;
+}
+.locationExplore:hover {
+  color: #1e7f3c;
+}
+.locationActions :is(button, a):focus-visible {
+  outline: 2px solid #478264;
+  outline-offset: 3px;
 }
 .recommendation {
   position: relative;

@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { MaeulLogo } from "@/components/maeul-logo";
 import { BottomNav } from "@/components/bottom-nav";
+import {
+  NearbyLocation,
+  type NearbyRegion
+} from "@/components/nearby-location";
 import { getMyProfile } from "@/lib/api/profile";
 import { getCurrentItinerary, type Itinerary } from "@/lib/api/itinerary";
 import { getFestival, type Festival } from "@/lib/api/festivals";
@@ -22,6 +26,7 @@ import {
 import styles from "./main.module.css";
 
 export default function MainPage() {
+  const [nearby, setNearby] = useState<NearbyRegion | null>(null);
   const [name, setName] = useState("");
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -147,9 +152,26 @@ export default function MainPage() {
             <img src="/images/main/profile.svg" alt="" />
           </Link>
         </header>
-        <div className={styles.greeting}>
-          <p>어서오세요.</p>
-          <h2>{name ? `${name}님` : "오늘도, 마을에서"}</h2>
+        <div className={styles.welcomeRow}>
+          <div className={styles.greeting}>
+            <p>어서오세요</p>
+            <h2>{name ? `${name}님` : "마을 여행자님"}</h2>
+          </div>
+          <div className={styles.locationActions}>
+            <NearbyLocation
+              onRegion={setNearby}
+              compact={Boolean(nearby)}
+              className={styles.locationRefresh}
+            />
+            {nearby && (
+              <Link
+                href={`/home?${new URLSearchParams({ region: nearby.regionCode, city: nearby.cityCode })}`}
+                className={styles.locationExplore}
+              >
+                <span>{nearby.label}</span> <ArrowRight size={14} />
+              </Link>
+            )}
+          </div>
         </div>
         <section className={styles.recommendation}>
           <p className={styles.eyebrow}>

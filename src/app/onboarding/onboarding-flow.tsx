@@ -319,8 +319,13 @@ function getConfiguredSteps(survey: Survey) {
 
 export function OnboardingFlow({
   initialSurvey,
-  editRequested = false
-}: Readonly<{ initialSurvey: Survey | null; editRequested?: boolean }>) {
+  editRequested = false,
+  returnTo = "/main"
+}: Readonly<{
+  initialSurvey: Survey | null;
+  editRequested?: boolean;
+  returnTo?: string;
+}>) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [survey, setSurvey] = useState<Survey | null>(initialSurvey);
@@ -405,7 +410,7 @@ export function OnboardingFlow({
         .then((response) => {
           if (cancelled) return;
           if (response && !editRequested) {
-            router.replace("/main");
+            router.replace(returnTo);
             return;
           }
           if (!response && editRequested) {
@@ -430,7 +435,7 @@ export function OnboardingFlow({
       cancelled = true;
       window.clearTimeout(timerId);
     };
-  }, [editRequested, entryRequest, router]);
+  }, [editRequested, entryRequest, router, returnTo]);
 
   useEffect(() => {
     if (!editRequested || !survey || !currentResponse) return;
@@ -639,7 +644,7 @@ export function OnboardingFlow({
           <TasteProfile
             answers={answers}
             survey={survey}
-            completionHref={editRequested ? "/my" : "/main"}
+            completionHref={editRequested ? "/my" : returnTo}
             completionLabel={
               editRequested
                 ? "수정한 취향 확인하기"
