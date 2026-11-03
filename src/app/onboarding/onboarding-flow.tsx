@@ -39,6 +39,7 @@ import {
 import {
   getCurrentSurveyResponse,
   getFirstSurvey,
+  hasSavedSurveyAnswers,
   storeSurvey,
   updateSurveyResponse,
   type Survey,
@@ -409,7 +410,7 @@ export function OnboardingFlow({
       void getCurrentSurveyResponse(token)
         .then((response) => {
           if (cancelled) return;
-          if (response && !editRequested) {
+          if (hasSavedSurveyAnswers(response) && !editRequested) {
             router.replace(returnTo);
             return;
           }

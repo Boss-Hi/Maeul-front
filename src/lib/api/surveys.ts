@@ -47,6 +47,10 @@ export type SurveyResponse = z.infer<
   typeof currentSurveyResponseSchema
 >["data"];
 
+export function hasSavedSurveyAnswers(response: SurveyResponse): boolean {
+  return Boolean(response && response.answers.length > 0);
+}
+
 export function parseFirstSurveyResponse(payload: unknown) {
   return surveyResponseSchema.parse(payload).data;
 }
