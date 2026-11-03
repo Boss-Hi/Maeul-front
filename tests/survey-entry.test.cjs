@@ -57,3 +57,30 @@ test("missing IDs and unknown add/delete contracts never invent answer IDs", () 
   assert.throws(() => mod.exports.toSurveyUpdateAnswers({ id: 4, answers: [{ questionId: 1, optionId: 3 }] }, [{ questionId: 1, selectedOptionIds: [4] }]));
   assert.throws(() => mod.exports.toSurveyUpdateAnswers({ id: 4, answers: [{ id: 123, questionId: 1, optionId: 3 }] }, [{ questionId: 1, selectedOptionIds: [3, 4] }]));
 });
+
+test("reducing choices sends only selected answer records", () => {
+  const result = mod.exports.toSurveyUpdateAnswers({ id: 4, answers: [
+    { id: 23, questionId: 4, optionId: 17 },
+    { id: 24, questionId: 4, optionId: 18 }
+  ] }, [{ questionId: 4, selectedOptionIds: [18] }]);
+  assert.equal(JSON.stringify(result), JSON.stringify([{ id: 24, optionId: 18 }]));
+});
+
+test("update refreshes IDs before PUT and confirms persisted answers afterwards", async () => {
+  const calls = [];
+  const latest = { id: 4, answers: [{ id: 90, questionId: 1, optionId: 3 }] };
+  const api = require("./load-api.cjs")("src/lib/api/surveys.ts", { fetch: async (url, options) => {
+    calls.push({ url, options });
+    if (options.method === "PUT") return new Response("{}");
+    return new Response(JSON.stringify({ success: true, data: calls.length === 1 ? latest : { ...latest, answers: [{ id: 90, questionId: 1, optionId: 4 }] } }));
+  } });
+  await api.updateSurveyResponse({ id: 4, answers: [{ id: 20, questionId: 1, optionId: 3 }] }, { surveyId: 1, answers: [{ questionId: 1, selectedOptionIds: [4] }] }, "test");
+  assert.equal(calls.length, 3);
+  assert.deepEqual(JSON.parse(calls[1].options.body).answers, [{ id: 90, optionId: 4 }]);
+});
+
+test("unchanged server answers after PUT never show success", async () => {
+  const current = { id: 4, answers: [{ id: 20, questionId: 1, optionId: 3 }] };
+  const api = require("./load-api.cjs")("src/lib/api/surveys.ts", { fetch: async () => new Response(JSON.stringify({ success: true, data: current })) });
+  await assert.rejects(api.updateSurveyResponse(current, { surveyId: 1, answers: [{ questionId: 1, selectedOptionIds: [4] }] }, "test"), /선택 내용과 달라요/);
+});

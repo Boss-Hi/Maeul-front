@@ -126,15 +126,12 @@ export function toSurveyUpdateAnswers(
   const used = new Set<number>();
   return answers.flatMap(({ questionId, selectedOptionIds }) => {
     const saved = current.answers.filter((answer) => answer.questionId === questionId);
-    if (saved.length !== selectedOptionIds.length) {
-      throw new Error("아직 선택 개수를 바꾸는 수정은 지원하지 않아요. 기존과 같은 개수로 선택해 주세요.");
-    }
     // Keep unchanged options attached to their existing records before reusing changed records.
     const remaining = saved.filter((answer) => !selectedOptionIds.includes(answer.optionId));
     return selectedOptionIds.map((optionId) => {
       const answer = saved.find((item) => item.optionId === optionId) ?? remaining.shift();
       if (!answer?.id || used.has(answer.id)) {
-        throw new Error("저장된 답변 ID를 확인하지 못했어요. 새로고침 후 다시 시도해 주세요.");
+        throw new Error("최신 설문을 조회했지만 선택한 항목에 연결할 답변 ID가 없어요. 새 답변 추가 방식 확인이 필요해요.");
       }
       used.add(answer.id);
       return { id: answer.id, optionId };
@@ -150,8 +147,12 @@ export async function updateSurveyResponse(
   },
   token: string
 ) {
-  const responseId = current.id;
-  const answers = toSurveyUpdateAnswers(current, payload.answers);
+  const latest = await getCurrentSurveyResponse(token);
+  if (!latest || latest.id !== current.id) {
+    throw new Error("저장된 설문이 변경됐어요. 수정 화면을 다시 열어 주세요.");
+  }
+  const responseId = latest.id;
+  const answers = toSurveyUpdateAnswers(latest, payload.answers);
   const response = await fetch(`/api/surveys/responses/${responseId}`, {
     method: "PUT",
     headers: {
@@ -173,5 +174,13 @@ export async function updateSurveyResponse(
     throw new Error(
       "취향 정보를 수정하지 못했어요. 잠시 후 다시 시도해 주세요."
     );
+  }
+  const saved = await getCurrentSurveyResponse(token);
+  const expected = payload.answers.flatMap(({ questionId, selectedOptionIds }) =>
+    selectedOptionIds.map((optionId) => `${questionId}:${optionId}`)
+  ).sort();
+  const actual = saved?.answers.map(({ questionId, optionId }) => `${questionId}:${optionId}`).sort();
+  if (saved?.id !== responseId || JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error("수정 요청 후 조회한 답변이 선택 내용과 달라요. 마이페이지에서 저장된 취향을 확인해 주세요.");
   }
 }
