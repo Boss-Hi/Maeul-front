@@ -123,9 +123,9 @@ export default function NewPlanPage() {
           >
             <ArrowLeft size={20} />
           </Link>
-          <span className="flex items-center gap-2 font-bold">
+          <Link href="/main" aria-label="마을 메인으로 이동" className="flex items-center gap-2 font-bold">
             <MaeulLogo size={24} /> MAEUL
-          </span>
+          </Link>
           <span className="text-xs">마이 로컬 플랜</span>
         </header>
         <h1 className="mt-8 text-2xl font-black">얼마나 머물러볼까요?</h1>

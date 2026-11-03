@@ -561,7 +561,7 @@ export function OnboardingFlow({
           answers: toSurveyAnswers(survey, answers)
         };
         if (currentResponse) {
-          await updateSurveyResponse(currentResponse.id, payload, token);
+          await updateSurveyResponse(currentResponse, payload, token);
         } else {
           await storeSurvey(payload, token);
         }
@@ -618,9 +618,9 @@ export function OnboardingFlow({
                 <ArrowLeft size={18} />
               </Link>
             )}
-            <span className="flex items-center gap-1.5 text-sm font-black tracking-[0.12em] text-[#12592C]">
+            <Link href="/main" aria-label="마을 메인으로 이동" className="flex items-center gap-1.5 text-sm font-black tracking-[0.12em] text-[#12592C]">
               <MaeulLogo size={24} className="rounded-[9px]" /> MAEUL
-            </span>
+            </Link>
             <span className="text-[11px] font-semibold text-[#52685a]">
               취향 산책
             </span>

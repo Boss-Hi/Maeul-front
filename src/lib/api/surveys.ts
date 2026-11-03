@@ -28,6 +28,7 @@ const surveyResponseSchema = z.object({
 });
 
 const surveyAnswerSchema = z.object({
+  id: z.number().int().positive().optional(),
   questionId: z.number().int(),
   optionId: z.number().int()
 });
@@ -116,14 +117,39 @@ export async function getCurrentSurveyResponse(
   return currentSurveyResponseSchema.parse(await response.json()).data;
 }
 
+export function toSurveyUpdateAnswers(
+  current: NonNullable<SurveyResponse>,
+  answers: { questionId: number; selectedOptionIds: number[] }[]
+) {
+  const used = new Set<number>();
+  return answers.flatMap(({ questionId, selectedOptionIds }) => {
+    const saved = current.answers.filter((answer) => answer.questionId === questionId);
+    if (saved.length !== selectedOptionIds.length) {
+      throw new Error("아직 선택 개수를 바꾸는 수정은 지원하지 않아요. 기존과 같은 개수로 선택해 주세요.");
+    }
+    // Keep unchanged options attached to their existing records before reusing changed records.
+    const remaining = saved.filter((answer) => !selectedOptionIds.includes(answer.optionId));
+    return selectedOptionIds.map((optionId) => {
+      const answer = saved.find((item) => item.optionId === optionId) ?? remaining.shift();
+      if (!answer?.id || used.has(answer.id)) {
+        throw new Error("저장된 답변 ID를 확인하지 못했어요. 새로고침 후 다시 시도해 주세요.");
+      }
+      used.add(answer.id);
+      return { id: answer.id, optionId };
+    });
+  });
+}
+
 export async function updateSurveyResponse(
-  responseId: number,
+  current: NonNullable<SurveyResponse>,
   payload: {
     surveyId: number;
     answers: { questionId: number; selectedOptionIds: number[] }[];
   },
   token: string
 ) {
+  const responseId = current.id;
+  const answers = toSurveyUpdateAnswers(current, payload.answers);
   const response = await fetch(`/api/surveys/responses/${responseId}`, {
     method: "PUT",
     headers: {
@@ -134,12 +160,7 @@ export async function updateSurveyResponse(
     // The update endpoint has a different contract from the create endpoint.
     body: JSON.stringify({
       surveyResponseId: responseId,
-      answers: payload.answers.flatMap(({ questionId, selectedOptionIds }) =>
-        selectedOptionIds.map((optionId) => ({
-          questionId,
-          optionId
-        }))
-      )
+      answers
     })
   });
 

@@ -2,6 +2,7 @@ import { Sparkles } from "lucide-react";
 import { SceneryIntro } from "./scenery-intro";
 import { MaeulLogo } from "@/components/maeul-logo";
 import { AuthStartAction } from "./auth-start-action";
+import Link from "next/link";
 
 export default function StartPage() {
   const apiBaseUrl =
@@ -20,12 +21,12 @@ export default function StartPage() {
           <div className="absolute right-[-90px] bottom-[18%] h-[220px] w-[220px] rounded-full border-[42px] border-white/36" />
 
           <header className="relative z-10 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <Link href="/main" aria-label="마을 메인으로 이동" className="flex items-center gap-2">
               <MaeulLogo />
               <span className="text-[17px] font-black tracking-[0.08em] text-[#12592C]">
                 MAEUL
               </span>
-            </div>
+            </Link>
             <span className="rounded-full bg-white/72 px-3 py-1.5 text-[11px] font-bold text-[#3d6b4d] shadow-[0_8px_20px_rgba(20,34,25,0.05)]">
               Local Mission
             </span>

@@ -30,9 +30,9 @@ export function LoginPrompt({
   return (
     <main className="grid min-h-dvh place-items-center bg-[#f5f8f6] px-5 text-[#16211a]">
       <section className="w-full max-w-[420px] rounded-lg border border-[#dce7d8] bg-white p-8 text-center">
-        <div className="mb-6 flex justify-center">
+        <Link href="/main" aria-label="마을 메인으로 이동" className="mb-6 inline-flex justify-center">
           <MaeulLogo />
-        </div>
+        </Link>
         <h1 className="text-xl font-bold">
           {next.startsWith("/mission")
             ? "로그인하고 마을 미션에 함께해요"

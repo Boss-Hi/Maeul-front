@@ -321,10 +321,10 @@ function HomeContent() {
       <div className={styles.shell}>
         <header className={styles.header}>
           <div className={styles.headerTop}>
-            <div className="flex items-center gap-2">
+            <Link href="/main" aria-label="마을 메인으로 이동" className="flex items-center gap-2">
               <MaeulLogo />
               <span className="text-[16px] font-black">MAEUL</span>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-3">
               <HeaderIcon label="내 정보">

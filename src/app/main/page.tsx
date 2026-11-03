@@ -145,7 +145,7 @@ export default function MainPage() {
     <main className={styles.page}>
       <div className={styles.content}>
         <header className={styles.header}>
-          <Link href="/main" className={styles.brand}>
+          <Link href="/main" aria-label="마을 메인으로 이동" className={styles.brand}>
             <MaeulLogo /> <strong>MAEUL</strong>
           </Link>
           <Link href="/my" aria-label="내 정보" className={styles.profile}>

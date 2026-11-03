@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import {
   Bell,
@@ -89,14 +90,14 @@ export default function TestPage() {
       <div className="mx-auto flex h-lvh w-full max-w-[600px] flex-col overflow-hidden bg-[#f7f8f6]">
         <header className="shrink-0 bg-white px-5 pt-5 pb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+            <Link href="/main" aria-label="마을 메인으로 이동" className="flex items-center gap-2.5">
               <div className="flex size-9 items-center justify-center rounded-lg bg-[#1f8a4c] text-white">
                 <Home size={19} fill="currentColor" strokeWidth={2.4} />
               </div>
               <span className="text-xl font-black tracking-[0.03em]">
                 MAEUL
               </span>
-            </div>
+            </Link>
 
             <div className="flex items-center gap-2">
               <TopIcon label="메시지" badge>
