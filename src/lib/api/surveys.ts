@@ -104,7 +104,8 @@ export async function getCurrentSurveyResponse(
     signal
   });
 
-  if (response.status === 404) return null;
+  // Current-survey lookup uses 400 for users without a saved response.
+  if (response.status === 400 || response.status === 404) return null;
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("로그인 시간이 만료됐어요. 다시 로그인해 주세요.");
