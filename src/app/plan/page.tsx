@@ -216,7 +216,7 @@ function PlanDetail({ itinerary: initial }: { itinerary: Itinerary }) {
       setItinerary((previous) => ({
         ...previous,
         days: previous.days.map((entry) =>
-          entry.id === updated.id ? updated : entry
+          entry.id === activeDay.id ? (updated ?? { ...entry, schedules: [] }) : entry
         )
       }));
       setRouteSpot(null);

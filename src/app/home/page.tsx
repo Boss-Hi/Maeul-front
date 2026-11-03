@@ -417,6 +417,7 @@ function HomeContent() {
                     지역 목록을 불러오지 못했어요.
                   </p>
                 )}
+                {regions.data?.length === 0 && <p className="py-5 text-center text-xs text-[#738378]">등록된 지역이 없어요.</p>}
                 {regions.data && (
                   <>
                     <div className={styles.regionList}>

@@ -7,7 +7,7 @@ export function safeReturnPath(value: string | null | undefined) {
     const url = new URL(value, "https://maeul.local");
     if (url.origin !== "https://maeul.local") return "/main";
     if (
-      !["/main", "/plan", "/plan/new", "/mission", "/my"].includes(url.pathname)
+      !["/main", "/home", "/event", "/plan", "/plan/new", "/mission", "/my"].includes(url.pathname)
     )
       return "/main";
     return `${url.pathname}${url.search}`;

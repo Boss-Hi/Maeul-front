@@ -52,7 +52,10 @@ export default function NewPlanPage() {
       setError("");
       void getFestival(id, controller.signal)
         .then((value) => {
-          if (!controller.signal.aborted) setFestival(value);
+          if (!controller.signal.aborted) {
+            setFestival(value);
+            if (!value) setError("해당 장소나 행사 정보가 없어요. 다른 장소를 선택해 주세요.");
+          }
         })
         .catch((cause: unknown) => {
           if (!controller.signal.aborted)

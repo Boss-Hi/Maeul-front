@@ -43,7 +43,7 @@ export default function PlanList() {
         setItems([
           ...(current ? [current] : []),
           ...results.flatMap((result) =>
-            result.status === "fulfilled" ? [result.value] : []
+            result.status === "fulfilled" && result.value ? [result.value] : []
           )
         ]);
         if (results.some((result) => result.status === "rejected"))

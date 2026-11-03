@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiFetch as fetch } from "./api-fetch";
 import { rememberItinerary } from "@/lib/itinerary-history";
 import {
   ACCESS_TOKEN_STORAGE_KEY,
@@ -44,17 +45,7 @@ async function request(
     },
     cache: "no-store"
   });
-  if (path === "current" && response.status === 400) {
-    const error = await response
-      .clone()
-      .json()
-      .catch(() => null);
-    if (
-      typeof error?.message === "string" &&
-      error.message.startsWith("일정을 찾을 수 없습니다")
-    )
-      return null;
-  }
+  if ((!options.method || options.method === "GET") && response.status === 400) return null;
   if (!response.ok)
     throw new ItineraryError(
       response.status === 401
@@ -103,8 +94,8 @@ export async function getCurrentItinerary(signal?: AbortSignal) {
 export async function getItinerary(id: number, signal?: AbortSignal) {
   if (!Number.isSafeInteger(id) || id <= 0)
     throw new Error("일정 번호를 확인해 주세요.");
-  const data = itinerarySchema.parse(await request(String(id), { signal }));
-  rememberItinerary(data.id);
+  const data = itinerarySchema.nullable().parse(await request(String(id), { signal }));
+  if (data) rememberItinerary(data.id);
   return data;
 }
 
@@ -118,7 +109,7 @@ export async function getItineraryDay(
   dayId: number,
   signal?: AbortSignal
 ) {
-  return daySchema.parse(
+  return daySchema.nullable().parse(
     await request(dayPath(itineraryId, dayId), { signal })
   );
 }
@@ -130,7 +121,7 @@ export async function getSchedule(
 ) {
   if (!Number.isSafeInteger(id) || id <= 0)
     throw new Error("상세 일정 번호를 확인해 주세요.");
-  return scheduleSchema.parse(
+  return scheduleSchema.nullable().parse(
     await request(`${dayPath(itineraryId, dayId)}/schedules/${id}`, { signal })
   );
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiFetch as fetch } from "./api-fetch";
 import {
   ACCESS_TOKEN_STORAGE_KEY,
   isAccessTokenExpired
@@ -43,6 +44,7 @@ export async function getCurrentMission(
     cache: "no-store",
     signal
   });
+  if (response.status === 400) return null;
   if (!response.ok)
     throw new MissionError(
       response.status === 401

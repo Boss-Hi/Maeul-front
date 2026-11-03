@@ -1,3 +1,5 @@
+import { apiFetch as fetch } from "./api-fetch";
+
 export async function getJson(
   path: string,
   signal?: AbortSignal
@@ -6,6 +8,7 @@ export async function getJson(
     signal,
     headers: { Accept: "application/json" }
   });
+  if (response.status === 400) return null;
   if (!response.ok) throw new Error("마을 소식을 가져오지 못했어요.");
   return response.json();
 }

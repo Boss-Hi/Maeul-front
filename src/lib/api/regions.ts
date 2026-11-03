@@ -15,5 +15,5 @@ const regionSchema = z.object({
 export type Region = z.infer<typeof regionSchema>;
 
 export async function getRegions(signal?: AbortSignal) {
-  return z.array(regionSchema).parse(await getJson("/api/regions", signal));
+  return z.array(regionSchema).parse((await getJson("/api/regions", signal)) ?? []);
 }

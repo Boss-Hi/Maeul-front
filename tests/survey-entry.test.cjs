@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 const mod = { exports: {} };
-vm.runInNewContext(ts.transpileModule(fs.readFileSync("src/lib/api/surveys.ts", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { module: mod, exports: mod.exports, require });
+vm.runInNewContext(ts.transpileModule(fs.readFileSync("src/lib/api/surveys.ts", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { module: mod, exports: mod.exports, require: name => name === "./api-fetch" ? require("./load-api.cjs")("src/lib/api/api-fetch.ts") : require(name) });
 const { hasSavedSurveyAnswers } = mod.exports;
 test("new accounts and empty response records must not skip onboarding", () => {
   assert.equal(hasSavedSurveyAnswers(null), false);
@@ -17,7 +17,7 @@ test("saved survey answers allow returning users to continue", () => {
 function apiWithStatus(status) {
   const module = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync("src/lib/api/surveys.ts", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, {
-    module, exports: module.exports, require,
+    module, exports: module.exports, require: name => name === "./api-fetch" ? require("./load-api.cjs")("src/lib/api/api-fetch.ts", { fetch: async () => new Response("{}", { status }) }) : require(name),
     fetch: async () => new Response(JSON.stringify({ message: "Bad Request" }), { status })
   });
   return module.exports;

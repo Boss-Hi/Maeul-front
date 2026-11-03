@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiFetch as fetch } from "./api-fetch";
 import type { Region } from "./regions";
 
 const addressSchema = z.object({
@@ -20,6 +21,7 @@ export async function getLocationRegion(
     signal,
     cache: "no-store"
   });
+  if (response.status === 400) throw new Error("현재 위치에 해당하는 지역 정보가 없어요. 지역을 직접 선택해 주세요.");
   if (!response.ok)
     throw new Error(
       "현재 위치의 주소를 불러오지 못했어요. 다시 시도해 주세요."

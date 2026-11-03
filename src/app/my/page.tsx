@@ -243,7 +243,7 @@ export default function MyPage() {
                         : profileLoadError ||
                           profile?.email ||
                           (isSignedIn
-                            ? "등록된 계정 정보를 불러오고 있어요."
+                            ? "등록된 프로필 정보가 없어요."
                             : "로그인하고 나만의 마을 취향을 만들어 보세요."))}
                   </p>
                 </div>

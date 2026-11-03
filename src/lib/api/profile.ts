@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiFetch as fetch } from "./api-fetch";
 
 const profileSchema = z.object({
   userId: z.number().int(),
@@ -29,6 +30,7 @@ export async function getMyProfile(token: string, signal?: AbortSignal) {
     signal
   });
 
+  if (response.status === 400) return null;
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("로그인 시간이 만료됐어요. 다시 로그인해 주세요.");

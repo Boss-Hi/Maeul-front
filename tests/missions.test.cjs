@@ -8,7 +8,7 @@ function client(payload, status = 200, token = "test") {
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync("src/lib/api/missions.ts", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports,
-    require: (name) => name === "@/lib/auth/session" ? { ACCESS_TOKEN_STORAGE_KEY: "token", isAccessTokenExpired: () => false } : require(name),
+    require: (name) => name === "./api-fetch" ? require("./load-api.cjs")("src/lib/api/api-fetch.ts", { fetch: async (...args) => { calls.push(args); return new Response(status === 204 ? null : JSON.stringify(payload), { status }); } }) : name === "@/lib/auth/session" ? { ACCESS_TOKEN_STORAGE_KEY: "token", isAccessTokenExpired: () => false } : require(name),
     sessionStorage: { getItem: () => token },
     fetch: async (...args) => { calls.push(args); return new Response(status === 204 ? null : JSON.stringify(payload), { status }); }
   });
@@ -30,7 +30,8 @@ test("null and 204 are empty states", async () => {
   assert.equal(await client(null, 204).api.getCurrentMission(), null);
 });
 test("errors and undocumented 404 do not become empty states", async () => {
-  for (const status of [400, 401, 404, 500]) await assert.rejects(client({}, status).api.getCurrentMission(), (error) => error.status === status);
+  assert.equal(await client({}, 400).api.getCurrentMission(), null);
+  for (const status of [401, 404, 500]) await assert.rejects(client({}, status).api.getCurrentMission(), (error) => error.status === status);
 });
 test("invalid payloads never show invented progress", async () => {
   for (const data of [{}, { ...mission, percentage: 101 }, { ...mission, missionTasks: [{ id: 4 }] }]) await assert.rejects(client({ success: true, data }).api.getCurrentMission());

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { apiFetch as fetch } from "./api-fetch";
 
 const surveyOptionSchema = z.object({
   optionId: z.number().int(),
@@ -61,6 +62,7 @@ export async function getFirstSurvey(signal?: AbortSignal) {
     headers: { Accept: "application/json" },
     signal
   });
+  if (response.status === 400) return null;
   if (!response.ok) throw new Error("취향 질문을 불러오지 못했어요.");
   return parseFirstSurveyResponse(await response.json());
 }

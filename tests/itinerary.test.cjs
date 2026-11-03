@@ -13,7 +13,7 @@ function load(relative, imports = {}, globals = {}) {
   const module = { exports: {} };
   vm.runInNewContext(code, {
     module, exports: module.exports,
-    require: name => imports[name] ?? require(name),
+    require: name => name === "./api-fetch" ? require("./load-api.cjs")("src/lib/api/api-fetch.ts", globals) : imports[name] ?? require(name),
     Response, AbortController, ...globals
   });
   return module.exports;
@@ -87,11 +87,15 @@ test("missing login does not send a request", async () => {
   await assert.rejects(c.api.getItineraryDay(4,13), error => error.status === 401);
   assert.equal(c.calls.length,0);
 });
-test("only known missing-current error becomes an empty state", async () => {
+test("all lookup 400 responses become empty states", async () => {
   const missing = client(() => new Response(JSON.stringify({message:"일정을 찾을 수 없습니다: "}),{status:400}));
   assert.equal(await missing.api.getCurrentItinerary(),null);
   const bad = client(() => new Response(JSON.stringify({message:"다른 오류"}),{status:400}));
-  await assert.rejects(bad.api.getCurrentItinerary(),error => error.status === 400);
+  assert.equal(await bad.api.getCurrentItinerary(), null);
+  assert.equal(await bad.api.getItinerary(4), null);
+  assert.equal(await bad.api.getItineraryDay(4, 13), null);
+  assert.equal(await bad.api.getSchedule(4, 13, 1), null);
+  await assert.rejects(bad.api.saveSchedule(4,13,{type:"NORMAL",title:"산책",description:""}), error => error.status === 400);
 });
 test("failed mutation stays a failure, never a local success", async () => {
   const c = client(() => new Response("{}",{status:500}));

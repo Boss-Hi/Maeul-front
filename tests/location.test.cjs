@@ -18,7 +18,7 @@ function client(data, status = 200) {
   vm.runInNewContext(code, {
     module,
     exports: module.exports,
-    require,
+    require: name => name === "./api-fetch" ? require("./load-api.cjs")("src/lib/api/api-fetch.ts", { fetch: async (...args) => { calls.push(args); return new Response(JSON.stringify(data), { status }); } }) : require(name),
     URLSearchParams,
     fetch: async (...args) => {
       calls.push(args);

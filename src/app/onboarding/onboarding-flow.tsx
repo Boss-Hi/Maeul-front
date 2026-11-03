@@ -331,6 +331,7 @@ export function OnboardingFlow({
   const [stepIndex, setStepIndex] = useState(0);
   const [survey, setSurvey] = useState<Survey | null>(initialSurvey);
   const [surveyLoadError, setSurveyLoadError] = useState("");
+  const [surveyEmpty, setSurveyEmpty] = useState(false);
   const [surveyRequest, setSurveyRequest] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -377,6 +378,7 @@ export function OnboardingFlow({
         .then((nextSurvey) => {
           if (cancelled) return;
           setSurvey(nextSurvey);
+          setSurveyEmpty(nextSurvey === null);
           setSurveyLoadError("");
         })
         .catch(() => {
@@ -476,15 +478,16 @@ export function OnboardingFlow({
               ? "로그인이 필요해요"
               : surveyLoadError || hasEntryError
                 ? "취향 정보를 준비하지 못했어요"
-                : "취향 지도를 준비하고 있어요"}
+                : surveyEmpty ? "아직 등록된 취향 질문이 없어요" : "취향 지도를 준비하고 있어요"}
           </h1>
           <p className="mt-2 text-[13px] leading-relaxed text-[#72877a]">
             {isUnauthenticated
               ? "카카오 로그인 후 나만의 마을 취향을 시작할 수 있어요."
               : surveyLoadError ||
                 entryError ||
-                "저장된 취향과 질문을 확인하고 있어요."}
+                (surveyEmpty ? "질문이 준비되면 다시 방문해 주세요." : "저장된 취향과 질문을 확인하고 있어요.")}
           </p>
+          {surveyEmpty && !isUnauthenticated && <Link href="/main" className="mt-5 inline-block text-sm font-bold text-[#478264]">메인으로 돌아가기</Link>}
           {isUnauthenticated ? (
             <Link
               href="/"

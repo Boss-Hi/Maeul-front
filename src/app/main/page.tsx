@@ -50,7 +50,7 @@ export default function MainPage() {
       getMyProfile(token, controller.signal)
         .then((profile) => {
           if (!controller.signal.aborted)
-            setName(profile.nickname || profile.name || "마을 여행자");
+            setName(profile?.nickname || profile?.name || "마을 여행자");
         })
         .catch(() => {});
       getCurrentItinerary(controller.signal)
@@ -82,7 +82,7 @@ export default function MainPage() {
         if (!controller.signal.aborted)
           setRecent(
             results.flatMap((result) =>
-              result.status === "fulfilled" ? [result.value] : []
+              result.status === "fulfilled" && result.value ? [result.value] : []
             )
           );
       });

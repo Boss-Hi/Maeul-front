@@ -59,6 +59,11 @@ export default function ScheduleEditor({
     getSchedule(itineraryId, day.id, editing, controller.signal)
       .then((schedule) => {
         if (controller.signal.aborted) return;
+        if (!schedule) {
+          setEditing(null);
+          setError("해당 일정이 없어요. 목록을 다시 확인해 주세요.");
+          return;
+        }
         setType(schedule.type);
         setTitle(schedule.title || "");
         setDescription(schedule.description || "");

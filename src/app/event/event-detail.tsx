@@ -58,7 +58,7 @@ export function EventDetail({ contentId }: { contentId: string }) {
               ? "홈에서 행사를 먼저 골라주세요."
               : query.isError
                 ? "행사 정보를 불러오지 못했어요."
-                : "행사 소식을 가져오고 있어요."}
+                : query.data === null ? "해당 행사 정보가 없어요. 다른 마을 소식을 둘러보세요." : "행사 소식을 가져오고 있어요."}
           </p>
           {query.isError && (
             <button

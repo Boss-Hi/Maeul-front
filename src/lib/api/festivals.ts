@@ -101,6 +101,8 @@ export async function getFestivals(
     params.set("location.region1depth", options.region1depth);
   if (options.region2depth)
     params.set("location.region2depth", options.region2depth);
+  const payload = await getJson(`/api/festivals?${params}`, signal);
+  if (payload === null) return { content: [], number: options.page, totalElements: 0, totalPages: 0, last: true };
   const response = z
     .object({
       success: z.literal(true),
@@ -112,25 +114,29 @@ export async function getFestivals(
         last: z.boolean()
       })
     })
-    .parse(await getJson(`/api/festivals?${params}`, signal));
+    .parse(payload);
   return response.data;
 }
 export async function getFestival(contentId: string, signal?: AbortSignal) {
+  const payload = await getJson(`/api/festivals/${encodeURIComponent(contentId)}`, signal);
+  if (payload === null) return null;
   return z
     .object({ success: z.literal(true), data: festivalSchema })
-    .parse(
-      await getJson(`/api/festivals/${encodeURIComponent(contentId)}`, signal)
-    ).data;
+    .parse(payload).data;
 }
 
 export async function getPopularFestivals(signal?: AbortSignal) {
+  const payload = await getJson("/api/festivals/popular", signal);
+  if (payload === null) return [];
   return z
     .object({ success: z.literal(true), data: z.array(festivalSchema) })
-    .parse(await getJson("/api/festivals/popular", signal)).data;
+    .parse(payload).data;
 }
 
 export async function getFestivalCategories(signal?: AbortSignal) {
+  const payload = await getJson("/api/festivals/categories", signal);
+  if (payload === null) return [];
   return z
     .array(categorySchema)
-    .parse(extractList(await getJson("/api/festivals/categories", signal)));
+    .parse(extractList(payload));
 }
