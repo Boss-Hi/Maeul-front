@@ -23,7 +23,6 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./home.module.css";
-import { RegionBanner } from "./region-banner";
 import {
   Suspense,
   useEffect,
@@ -482,9 +481,6 @@ function HomeContent() {
         </header>
 
         <section ref={scrollRef} className={styles.content}>
-          {!isRegionExplore && (
-            <RegionBanner exploreHref="/home?region=gangwon&city=gangneung" />
-          )}
 
           <div ref={categoryAnchorRef} className="mt-6" />
           <div className={styles.categoryBar}>
